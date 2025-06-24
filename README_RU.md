@@ -3,11 +3,11 @@
 [![Readme EN](https://img.shields.io/badge/README-EN-blue.svg)](https://github.com/bespredel/GeoRestrict/blob/master/README.md)
 [![Readme RU](https://img.shields.io/badge/README-RU-blue.svg)](https://github.com/bespredel/GeoRestrict/blob/master/README_RU.md)
 [![GitHub license](https://img.shields.io/badge/license-MIT-458a7b.svg)](https://github.com/bespredel/GeoRestrict/blob/master/LICENSE)
-[![Downloads](https://img.shields.io/packagist/dt/bespredel/GeoRestrict.svg)](https://packagist.org/packages/bespredel/GeoRestrict)
+[![Downloads](https://img.shields.io/packagist/dt/bespredel/geo-restrict.svg)](https://packagist.org/packages/bespredel/geo-restrict)
 
 [![Latest Version](https://img.shields.io/github/v/release/bespredel/GeoRestrict?logo=github)](https://github.com/bespredel/GeoRestrict/releases)
-[![Latest Version Packagist](https://img.shields.io/packagist/v/bespredel/GeoRestrict.svg?logo=packagist&logoColor=white&color=F28D1A)](https://packagist.org/packages/bespredel/GeoRestrict)
-[![PHP from Packagist](https://img.shields.io/packagist/php-v/bespredel/GeoRestrict.svg?logo=php&logoColor=white&color=777BB4)](https://php.net)
+[![Latest Version Packagist](https://img.shields.io/packagist/v/bespredel/geo-restrict.svg?logo=packagist&logoColor=white&color=F28D1A)](https://packagist.org/packages/bespredel/geo-restrict)
+[![PHP from Packagist](https://img.shields.io/packagist/php-v/bespredel/geo-restrict.svg?logo=php&logoColor=white&color=777BB4)](https://php.net)
 [![Laravel Version](https://img.shields.io/badge/laravel-%3E%3D10-FF2D20?logo=laravel)](https://laravel.com)
 
 Модуль для ограничения доступа к вашему приложению Laravel по геолокации пользователя (страна, регион, ASN, город, ISP и др.).
