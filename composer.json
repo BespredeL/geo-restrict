@@ -1,6 +1,16 @@
 {
     "name": "bespredel/geo-restrict",
-    "description": "Restrict access to your Laravel app based on geolocation data.",
+    "description": "Middleware to restrict access to Laravel applications based on IP geolocation.",
+    "keywords": [
+        "laravel",
+        "middleware",
+        "geoip",
+        "ip",
+        "geo",
+        "location",
+        "restriction",
+        "access"
+    ],
     "type": "library",
     "license": "MIT",
     "authors": [
@@ -31,5 +41,7 @@
         "psr-4": {
             "Tests\\": "tests/"
         }
-    }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
 }
