@@ -1,35 +1,48 @@
 # GeoRestrict Middleware for Laravel
 
-Модуль для ограничения доступа к вашему приложению Laravel по геолокации пользователя (страна, регион, ASN, город, ISP и др.).
+[![Readme EN](https://img.shields.io/badge/README-EN-blue.svg)](https://github.com/bespredel/GeoRestrict/blob/master/README.md)
+[![Readme RU](https://img.shields.io/badge/README-RU-blue.svg)](https://github.com/bespredel/GeoRestrict/blob/master/README_RU.md)
+[![GitHub license](https://img.shields.io/badge/license-MIT-458a7b.svg)](https://github.com/bespredel/GeoRestrict/blob/master/LICENSE)
+[![Downloads](https://img.shields.io/packagist/dt/bespredel/GeoRestrict.svg)](https://packagist.org/packages/bespredel/GeoRestrict)
 
-## Возможности
+[![Latest Version](https://img.shields.io/github/v/release/bespredel/GeoRestrict?logo=github)](https://github.com/bespredel/GeoRestrict/releases)
+[![Latest Version Packagist](https://img.shields.io/packagist/v/bespredel/GeoRestrict.svg?logo=packagist&logoColor=white&color=F28D1A)](https://packagist.org/packages/bespredel/GeoRestrict)
+[![PHP from Packagist](https://img.shields.io/packagist/php-v/bespredel/GeoRestrict.svg?logo=php&logoColor=white&color=777BB4)](https://php.net)
+[![Laravel Version](https://img.shields.io/badge/laravel-%3E%3D10-FF2D20?logo=laravel)](https://laravel.com)
 
-- Проверка страны, региона, ASN, города, ISP по IP пользователя
-- Поддержка нескольких geo-сервисов (порядок в массиве определяет приоритет)
-- Кэширование geo-ответов (можно отключить)
-- Rate limit на обращения к geo-сервисам
-- Гибкая настройка allow/deny правил, включая callback-функции и временные ограничения
-- Белый список IP
-- Гибкая настройка маршрутов (паттерны, методы)
-- Локализация текстов ошибок
-- Разные ответы для разных стран/правил
-- Логирование блокировок и разрешённых запросов
+GeoRestrict is a Laravel middleware that restricts access to your application based on the user's IP geolocation. It supports multiple IP lookup
+services, complex filtering rules, localization, logging, and custom response types.
 
-## Установка
+---
 
-1. Установите пакет:
+## Features
+
+- IP-based filtering by country, region, ASN, city, ISP
+- Supports multiple GeoIP services (priority based on array order)
+- Geo response caching (can be disabled)
+- Rate limiting for geo service requests
+- Flexible allow/deny rules, including callbacks and time-based restrictions
+- IP whitelist
+- Route targeting via patterns and HTTP methods
+- Localized error messages
+- Different responses per country/rule
+- Logging for blocked and allowed requests
+
+## Installation
+
+1. Install the package:
 
 ```bash
-composer require bespredel/geo-restrict
+composer require bespredel/georestrict
 ```
 
-2. Опубликуйте конфиг:
+2. Publish the configuration:
 
 ```bash
 php artisan vendor:publish --provider="Bespredel\GeoRestrict\GeoRestrictServiceProvider" --tag=geo-restrict-config
 ```
 
-## Пример конфига `config/geo_restrict.php`
+## Example config `config/geo_restrict.php`
 
 ```php
 return [
@@ -45,11 +58,11 @@ return [
                 'isp'     => 'connection.isp',
             ],
         ],
-        // Добавьте другие сервисы, порядок определяет приоритет
+        // Add more services; priority is based on order
     ],
     'geo' => [
-        'cache_ttl'  => 1440, // В минутах, 0 = кэш отключён
-        'rate_limit' => 30,   // Запросов в минуту на IP
+        'cache_ttl'  => 1440, // In minutes, 0 = disabled
+        'rate_limit' => 30,   // Requests per minute per IP
     ],
     'access' => [
         'whitelisted_ips' => ['127.0.0.1'],
@@ -91,21 +104,20 @@ return [
 ];
 ```
 
-### Описание основных параметров
+### Key parameters explained
 
-- **services** — список geo-сервисов, используемых для определения местоположения по IP. Можно добавить несколько, порядок определяет приоритет.
-- **geo.cache_ttl** — время жизни кэша (в минутах), 0 — кэш отключён.
-- **geo.rate_limit** — ограничение количества запросов к geo-сервисам с одного IP в минуту.
-- **access.whitelisted_ips** — IP-адреса, которым всегда разрешён доступ (по умолчанию localhost).
-- **access.rules.allow/deny** — правила разрешения/запрета по стране, региону, ASN, callback-функции и времени.
-- **logging** — параметры логирования (блокировки, разрешённые запросы).
-- **block_response.type** — тип ответа при блокировке: 'abort' (стандартный abort), 'json' (JSON-ответ), 'view' (рендер view).
-- **block_response.texts** — (устарело, не используется)
-- **routes.only/except/methods** — ограничения по маршрутам и HTTP-методам.
+- **services** — list of GeoIP providers used to resolve location by IP. Priority based on order.
+- **geo.cache_ttl** — cache lifetime in minutes (0 disables caching).
+- **geo.rate_limit** — max requests per minute per IP to geo services.
+- **access.whitelisted_ips** — IPs that are always allowed (e.g., localhost).
+- **access.rules.allow/deny** — allow/deny rules by country, region, ASN, callbacks and time periods.
+- **logging** — enable logging of blocked or allowed requests.
+- **block_response.type** — response type: 'abort', 'json', or 'view'.
+- **routes.only/except/methods** — route and method matching.
 
-## Использование
+## Usage
 
-1. Добавьте middleware в нужные маршруты:
+1. Add the middleware to routes:
 
 ```php
 Route::middleware(['geo.restrict'])->group(function () {
@@ -113,45 +125,45 @@ Route::middleware(['geo.restrict'])->group(function () {
 });
 ```
 
-2. Или используйте alias:
+2. Or apply directly:
 
 ```php
 Route::get('/secret', 'SecretController@index')->middleware('geo.restrict');
 ```
 
-## Кастомизация
+## Customization
 
-- Добавьте свои geo-сервисы в массив `services`, порядок определяет приоритет.
-- Используйте allow/deny правила для гибкой фильтрации.
-- Для сложных кейсов используйте callback-функции в правилах.
-- Для локализации ошибок используйте файлы языков.
+- Add custom geo services in the `services` array.
+- Use allow/deny rules for flexible filtering.
+- Use callback functions for complex logic.
+- Add language files for localized block messages.
 
-## Тестирование
+## Testing
 
-Пакет покрыт тестами, которые проверяют:
+The package is covered by tests for:
 
-- Блокировку по стране, региону, городу, ASN
-- Временные ограничения (time-based deny)
-- Кастомные callback-функции
-- Разрешённые IP и страны
-- Типы ответов: JSON, View, стандартный abort
-- Локализацию сообщений о блокировке
+- Country, region, city, ASN blocking
+- Time-based deny restrictions
+- Custom callback functions
+- Allowed IPs and countries
+- Response types: JSON, view, abort
+- Message localization
 
-Тесты находятся в директории `tests/` и используют Laravel TestCase.
+Tests are located in the `tests/` directory.
 
-### Запуск тестов
+### Run tests
 
 ```bash
 ./vendor/bin/phpunit
 ```
 
-или, если PHPUnit установлен глобально:
+Or globally:
 
 ```bash
 phpunit
 ```
 
-Пример теста:
+Example test:
 
 ```php
 public function test_blocked_country_gets_403_and_localized_message()
@@ -164,18 +176,17 @@ public function test_blocked_country_gets_403_and_localized_message()
 }
 ```
 
-Для добавления новых тестов используйте структуру из файла `tests/GeoRestrictMiddlewareTest.php`.
+To add new tests, use the structure from the file `tests/GeoRestrictMiddlewareTest.php`.
 
-## Лицензия
+## License
 
 MIT
 
-### Локализация сообщений
+### Message Localization
 
-Сообщение о блокировке автоматически выводится на языке страны пользователя (по коду страны, если есть соответствующий языковой файл), либо на языке
-приложения.
+Block message is shown in the language of the user's country (if a language file exists), or the app default locale.
 
-Чтобы добавить поддержку нового языка, создайте файл:
+To add a new language:
 
 resources/lang/it/geo_restrict.php:
 
@@ -185,4 +196,4 @@ return [
 ];
 ```
 
-В коде ничего менять не нужно — язык будет определён автоматически по коду страны (например, IT, FR, DE, RU, EN и т.д.). 
+No code changes required — language is detected automatically based on country code (e.g., IT, FR, DE, RU, EN, etc.). 
