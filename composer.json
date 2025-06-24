@@ -1,0 +1,35 @@
+{
+    "name": "bespredel/geo-restrict",
+    "description": "Restrict access to your Laravel app based on geolocation data.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Aleksandr Kireev",
+            "email": "hello@bespredel.name",
+            "homepage": "https://bespredel.name",
+            "role": "Developer"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Bespredel\\GeoRestrict\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Bespredel\\GeoRestrict\\GeoRestrictServiceProvider"
+            ]
+        }
+    },
+    "require": {
+        "php": ">=8.1",
+        "illuminate/support": "^10|^11"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    }
+}
