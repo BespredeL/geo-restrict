@@ -12,43 +12,29 @@ return [
     |
     */
     'services'       => [
+        \BespredeL\GeoRestrict\Providers\IpWhoIsProvider::class,
+
         [
-            'name' => 'ipwho.is',
-            'url'  => 'https://ipwho.is/:ip',
-            'map'  => [
-                'country' => 'country_code',
-                'region'  => 'region',
-                'city'    => 'city',
-                'asn'     => 'connection.asn',
-                'isp'     => 'connection.isp',
+            'provider' => \BespredeL\GeoRestrict\Providers\IpApiComProvider::class,
+            'options'  => [
+                'api_key' => 'your-api-key',
+                'lang'    => 'en',
             ],
         ],
 
-        [
-            'name' => 'ip-api.com',
-            'url'  => 'http://ip-api.com/json/:ip',
-            'map'  => [
-                'country' => 'countryCode',
-                'region'  => 'region',
-                'city'    => 'city',
-                'asn'     => 'as',
-                'isp'     => 'isp',
-            ],
-        ],
+        \BespredeL\GeoRestrict\Providers\IpApiCoProvider::class,
 
-        [
-            'name' => 'ipapi.co',
-            'url'  => 'https://ipapi.co/:ip/json/',
-            'map'  => [
-                'country' => 'country_code',
-                'region'  => 'region_code',
-                'city'    => 'city',
-                'asn'     => 'asn',
-                'isp'     => 'org',
-            ],
-        ],
-
-        // Add more services here; order defines priority.
+        // [
+        //     'name' => 'custom',
+        //     'url'  => 'https://example.com/:ip',
+        //     'map'  => [
+        //         'country' => 'country_code',
+        //         'region'  => 'region',
+        //         'city'    => 'city',
+        //         'asn'     => 'asn',
+        //         'isp'     => 'isp',
+        //     ],
+        // ],
     ],
 
     /*
