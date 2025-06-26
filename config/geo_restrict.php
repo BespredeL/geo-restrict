@@ -23,6 +23,31 @@ return [
                 'isp'     => 'connection.isp',
             ],
         ],
+
+        [
+            'name' => 'ip-api.com',
+            'url'  => 'http://ip-api.com/json/:ip',
+            'map'  => [
+                'country' => 'countryCode',
+                'region'  => 'region',
+                'city'    => 'city',
+                'asn'     => 'as',
+                'isp'     => 'isp',
+            ],
+        ],
+
+        [
+            'name' => 'ipapi.co',
+            'url'  => 'https://ipapi.co/:ip/json/',
+            'map'  => [
+                'country' => 'country_code',
+                'region'  => 'region_code',
+                'city'    => 'city',
+                'asn'     => 'asn',
+                'isp'     => 'org',
+            ],
+        ],
+
         // Add more services here; order defines priority.
     ],
 
