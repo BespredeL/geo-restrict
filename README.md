@@ -33,7 +33,7 @@ services, complex filtering rules, localization, logging, and custom response ty
 1. Install the package:
 
 ```bash
-composer require bespredel/georestrict
+composer require bespredel/geo-restrict
 ```
 
 2. Publish the configuration:
