@@ -283,7 +283,7 @@ class RestrictAccessByGeo
             app()->setLocale($locale);
         }
 
-        $message = __('geo_restrict.blocked');
+        $message = Lang::get('geo_restrict::messages.blocked');
 
         // Fallback message if translation key is missing
         if ($message === 'geo_restrict.blocked') {
