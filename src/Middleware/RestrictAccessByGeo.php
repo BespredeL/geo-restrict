@@ -217,10 +217,21 @@ class RestrictAccessByGeo
         foreach ($rules['deny']['time'] ?? [] as $period) {
             $from = $period['from'] ?? null;
             $to = $period['to'] ?? null;
-            $now = now()->format('H:i');
 
-            if ($from && $to && $now >= $from && $now <= $to) {
-                return false;
+            if ($from && $to) {
+                $now = now();
+                $fromTime = now()->copy()->setTimeFromTimeString($from);
+                $toTime = now()->copy()->setTimeFromTimeString($to);
+                
+                if ($fromTime > $toTime) {
+                    if ($now >= $fromTime || $now <= $toTime) {
+                        return false;
+                    }
+                } else {
+                    if ($now >= $fromTime && $now <= $toTime) {
+                        return false;
+                    }
+                }
             }
         }
 
@@ -292,7 +303,9 @@ class RestrictAccessByGeo
 
         app()->setLocale($originalLocale); // Revert back to original
 
-        $json['message'] = $message;
+        if ($json['message'] === null) {
+            $json['message'] = $message;
+        }
 
         return match ($type) {
             'json' => response()->json($json, 403),

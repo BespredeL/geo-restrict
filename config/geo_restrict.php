@@ -127,9 +127,9 @@ return [
     */
     'block_response' => [
         'type' => 'abort',
-        'view' => 'errors.geo_blocked',
+        'view' => 'errors.403',
         'json' => [
-            'message' => 'Access denied: your region is restricted.',
+            'message' => null, // By default, taken from the language file
         ],
     ],
 
