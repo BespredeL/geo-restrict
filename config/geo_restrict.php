@@ -12,18 +12,30 @@ return [
     |
     */
     'services'       => [
-        \BespredeL\GeoRestrict\Providers\IpWhoIsProvider::class,
-
         [
-            'provider' => \BespredeL\GeoRestrict\Providers\IpApiComProvider::class,
+            'provider' => \Bespredel\GeoRestrict\Providers\IpWhoIsProvider::class,
+            'options'  => [],
+        ],
+        [
+            'provider' => \Bespredel\GeoRestrict\Providers\IpApiComProvider::class,
             'options'  => [
                 'api_key' => 'your-api-key',
-                'lang'    => 'en',
+                'lang'    => 'en', // optional
+            ],
+        ],
+        [
+            'provider' => \Bespredel\GeoRestrict\Providers\IpApiCoProvider::class,
+            'options'  => [],
+        ],
+        [
+            'provider' => \Bespredel\GeoRestrict\Providers\Ip2LocationIoProvider::class,
+            'options'  => [
+                'api_key' => 'your-ip2location-api-key',
+                'lang'    => 'en', // optional
             ],
         ],
 
-        \BespredeL\GeoRestrict\Providers\IpApiCoProvider::class,
-
+        // Support custom providers raw format
         // [
         //     'name' => 'custom',
         //     'url'  => 'https://example.com/:ip',
@@ -39,14 +51,14 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Geo: Caching & Rate Limiting
+    | Geo Services: Caching & Rate Limiting
     |--------------------------------------------------------------------------
     |
     | cache_ttl   - Duration in minutes to cache IP geo data (0 = disabled)
     | rate_limit  - Max number of requests per IP per minute
     |
     */
-    'geo'            => [
+    'geo_services'   => [
         'cache_ttl'  => 1440,
         'rate_limit' => 30,
     ],
@@ -133,5 +145,23 @@ return [
         'only'    => [],
         'except'  => [],
         'methods' => [],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Local Networks (for isLocalIp)
+    |--------------------------------------------------------------------------
+    |
+    | List of IPs or CIDR blocks considered as local/private.
+    | Used by isLocalIp().
+    |
+    */
+    'local_networks' => [
+        '127.0.0.1',
+        '::1',
+        '10.0.0.0/8',
+        '192.168.0.0/16',
+        '172.16.0.0/12',
+        // Add more as needed
     ],
 ];

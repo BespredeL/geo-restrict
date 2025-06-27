@@ -2,7 +2,7 @@
 
 namespace Bespredel\GeoRestrict\Middleware;
 
-use Bespredel\GeoRestrict\Providers\GeoServiceProviderInterface;
+use Bespredel\GeoRestrict\Contracts\GeoServiceProviderInterface;
 use Bespredel\GeoRestrict\Services\GeoResolver;
 use Bespredel\GeoRestrict\Services\GeoAccess;
 use Closure;

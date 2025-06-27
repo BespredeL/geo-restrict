@@ -17,8 +17,42 @@ class GeoAccess
      */
     public function isLocalIp(string $ip): bool
     {
-        return in_array($ip, ['127.0.0.1', '::1'], true)
-            || preg_match('/^(10|192\.168|172\.(1[6-9]|2[0-9]|3[0-1]))\./', $ip);
+        $networks = config('geo_restrict.local_networks', []);
+        foreach ($networks as $network) {
+            if (strpos($network, '/') === false) {
+                if ($ip === $network) {
+                    return true;
+                }
+            } else {
+                if ($this->ipInCidr($ip, $network)) {
+                    return true;
+                }
+            }
+        }
+        
+        return false;
+    }
+
+    /**
+     * Проверяет, принадлежит ли IP диапазону CIDR
+     */
+    protected function ipInCidr(string $ip, string $cidr): bool
+    {
+        [$subnet, $mask] = explode('/', $cidr);
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && filter_var($subnet, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            $ipLong = ip2long($ip);
+            $subnetLong = ip2long($subnet);
+            $maskLong = -1 << (32 - (int)$mask);
+            return ($ipLong & $maskLong) === ($subnetLong & $maskLong);
+        } elseif (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) && filter_var($subnet, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+            $ipBin = inet_pton($ip);
+            $subnetBin = inet_pton($subnet);
+            $maskBin = str_repeat("f", $mask / 4);
+            $maskBin = pack("H*", str_pad($maskBin, 32, '0'));
+            return ($ipBin & $maskBin) === ($subnetBin & $maskBin);
+        }
+
+        return false;
     }
 
     /**
@@ -117,7 +151,7 @@ class GeoAccess
         }
 
         app()->setLocale($originalLocale);
-        if ($json['message'] === null) {
+        if (($json['message'] ?? null) === null) {
             $json['message'] = $message;
         }
 

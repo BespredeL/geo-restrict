@@ -22,7 +22,7 @@ class GeoCache
     {
         $rateKey = "geoip:rate:{$ip}";
         $count = Cache::get($rateKey, 0);
-        $rateLimit = config('geo_restrict.geo.rate_limit', 30);
+        $rateLimit = config('geo_restrict.geo_services.rate_limit', 30);
 
         if ($count >= $rateLimit) {
             Log::warning("GeoRestrict: Rate limit exceeded for {$ip}");
@@ -44,7 +44,7 @@ class GeoCache
     public function get(string $ip): ?array
     {
         $cacheKey = "geoip:{$ip}";
-        $cacheTtl = config('geo_restrict.geo.cache_ttl', 1440);
+        $cacheTtl = config('geo_restrict.geo_services.cache_ttl', 1440);
         if ($cacheTtl > 0 && Cache::has($cacheKey)) {
             return Cache::get($cacheKey);
         }
@@ -63,7 +63,7 @@ class GeoCache
     public function put(string $ip, array $data): void
     {
         $cacheKey = "geoip:{$ip}";
-        $cacheTtl = config('geo_restrict.geo.cache_ttl', 1440);
+        $cacheTtl = config('geo_restrict.geo_services.cache_ttl', 1440);
         if ($cacheTtl > 0) {
             Cache::put($cacheKey, $data, now()->addMinutes($cacheTtl));
         }

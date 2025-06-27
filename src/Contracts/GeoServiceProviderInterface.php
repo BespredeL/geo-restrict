@@ -9,6 +9,14 @@ namespace Bespredel\GeoRestrict\Contracts;
 interface GeoServiceProviderInterface
 {
     /**
+     * Set provider-specific options (e.g., API key, language, etc).
+     *
+     * @param array $options
+     * @return void
+     */
+    public function setOptions(array $options): void;
+
+    /**
      * Get geo data for the given IP address.
      *
      * @param string $ip
