@@ -3,7 +3,6 @@
 namespace Bespredel\GeoRestrict\Services;
 
 use Illuminate\Support\Facades\Lang;
-use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class GeoAccess
@@ -17,7 +16,7 @@ class GeoAccess
      */
     public function isLocalIp(string $ip): bool
     {
-        $networks = config('geo_restrict.local_networks', []);
+        $networks = config('geo-restrict.local_networks', []);
         foreach ($networks as $network) {
             if (strpos($network, '/') === false) {
                 if ($ip === $network) {
@@ -29,7 +28,7 @@ class GeoAccess
                 }
             }
         }
-        
+
         return false;
     }
 
@@ -64,7 +63,7 @@ class GeoAccess
      */
     public function isWhitelistedIp(string $ip): bool
     {
-        return in_array($ip, config('geo_restrict.access.whitelisted_ips', []), true);
+        return in_array($ip, config('geo-restrict.access.whitelisted_ips', []), true);
     }
 
     /**
@@ -76,7 +75,7 @@ class GeoAccess
      */
     public function passesRules(array $geo): bool
     {
-        $rules = config('geo_restrict.access.rules', []);
+        $rules = config('geo-restrict.access.rules', []);
 
         // Time-based denial
         foreach ($rules['deny']['time'] ?? [] as $period) {
@@ -136,17 +135,17 @@ class GeoAccess
      */
     public function denyResponse(?string $reason = null): Response
     {
-        $type = config('geo_restrict.block_response.type', 'abort');
-        $json = config('geo_restrict.block_response.json', []);
+        $type = config('geo-restrict.block_response.type', 'abort');
+        $json = config('geo-restrict.block_response.json', []);
         $locale = is_string($reason) && strlen($reason) === 2 ? strtolower($reason) : null;
         $originalLocale = app()->getLocale();
 
-        if ($locale && Lang::has('geo_restrict.blocked', $locale)) {
+        if ($locale && Lang::has('geo-restrict.blocked', $locale)) {
             app()->setLocale($locale);
         }
 
-        $message = Lang::get('geo_restrict::messages.blocked');
-        if ($message === 'geo_restrict.blocked') {
+        $message = Lang::get('geo-restrict::messages.blocked');
+        if ($message === 'geo-restrict.blocked') {
             $message = 'Access denied by geo restriction.';
         }
 
@@ -158,7 +157,7 @@ class GeoAccess
         return match ($type) {
             'json' => response()->json($json, 403),
             'view' => response()->view(
-                config('geo_restrict.block_response.view', 'errors.403'),
+                config('geo-restrict.block_response.view', 'errors.403'),
                 ['message' => $message, 'country' => $reason],
                 403
             ),

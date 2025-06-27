@@ -2,16 +2,13 @@
 
 namespace Bespredel\GeoRestrict\Contracts;
 
-/**
- * Interface for geo service providers.
- * Implement this interface to provide geo data by IP address.
- */
 interface GeoServiceProviderInterface
 {
     /**
      * Set provider-specific options (e.g., API key, language, etc).
      *
      * @param array $options
+     *
      * @return void
      */
     public function setOptions(array $options): void;

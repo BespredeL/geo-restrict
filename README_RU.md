@@ -45,7 +45,7 @@ php artisan vendor:publish --provider="Bespredel\GeoRestrict\GeoRestrictServiceP
 php artisan vendor:publish --provider="Bespredel\GeoRestrict\GeoRestrictServiceProvider" --tag=geo-restrict-lang
 ```
 
-## Пример конфига `config/geo_restrict.php`
+## Пример конфига `config/geo-restrict.php`
 
 ```php
 return [
@@ -226,7 +226,7 @@ GeoRestrict поддерживает мультиязычные сообщени
 php artisan vendor:publish --provider="Bespredel\GeoRestrict\GeoRestrictServiceProvider" --tag=geo-restrict-lang
 ```
 
-2. Редактируйте файлы в `resources/lang/vendor/geo_restrict/` по необходимости. Для новых языков создайте новую папку (например, `it`, `es`).
+2. Редактируйте файлы в `resources/lang/vendor/geo-restrict/` по необходимости. Для новых языков создайте новую папку (например, `it`, `es`).
 
 - Сообщение о блокировке автоматически выводится на языке страны пользователя (по коду страны, если есть соответствующий языковой файл), либо на языке приложения по умолчанию.
 - Чтобы добавить поддержку нового языка, создайте файл:

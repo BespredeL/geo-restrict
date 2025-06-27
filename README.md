@@ -45,7 +45,7 @@ php artisan vendor:publish --provider="Bespredel\GeoRestrict\GeoRestrictServiceP
 php artisan vendor:publish --provider="Bespredel\GeoRestrict\GeoRestrictServiceProvider" --tag=geo-restrict-lang
 ```
 
-## Example config `config/geo_restrict.php`
+## Example config `config/geo-restrict.php`
 
 ```php
 return [
@@ -226,7 +226,7 @@ GeoRestrict supports multi-language block messages. To customize or add new tran
 php artisan vendor:publish --provider="Bespredel\GeoRestrict\GeoRestrictServiceProvider" --tag=geo-restrict-lang
 ```
 
-2. Edit files in `resources/lang/vendor/geo_restrict/` as needed. Add new locales by creating new folders (e.g., `it`, `es`).
+2. Edit files in `resources/lang/vendor/geo-restrict/` as needed. Add new locales by creating new folders (e.g., `it`, `es`).
 
 - The block message is automatically shown in the user's country language (based on the country code, if a corresponding language file exists), or in the application's default language.
 - To add a new language, create a file like:

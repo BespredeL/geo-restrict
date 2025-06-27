@@ -14,17 +14,17 @@ class GeoRestrictServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $this->mergeConfigFrom(__DIR__ . '/../config/geo_restrict.php', 'geo_restrict');
+        $this->mergeConfigFrom(__DIR__ . '/../config/geo-restrict.php', 'geo-restrict');
 
         $this->publishes([
-            __DIR__ . '/../config/geo_restrict.php' => config_path('geo_restrict.php'),
+            __DIR__ . '/../config/geo-restrict.php' => config_path('geo-restrict.php'),
         ], 'geo-restrict-config');
 
         $this->publishes([
-            __DIR__ . '/../resources/lang' => resource_path('lang/vendor/geo_restrict'),
+            __DIR__ . '/../resources/lang' => resource_path('lang/vendor/geo-restrict'),
         ], 'geo-restrict-lang');
 
-        $this->loadTranslationsFrom(__DIR__ . '/../resources/lang', 'geo_restrict');
+        $this->loadTranslationsFrom(__DIR__ . '/../resources/lang', 'geo-restrict');
 
         app('router')->aliasMiddleware('geo.restrict', RestrictAccessByGeo::class);
     }

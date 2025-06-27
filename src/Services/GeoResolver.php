@@ -3,8 +3,9 @@
 namespace Bespredel\GeoRestrict\Services;
 
 use Bespredel\GeoRestrict\Contracts\GeoServiceProviderInterface;
-use Bespredel\GeoRestrict\Exceptions\GeoRateLimitException;
 use Bespredel\GeoRestrict\Exceptions\GeoProviderException;
+use Bespredel\GeoRestrict\Exceptions\GeoRateLimitException;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -48,7 +49,7 @@ class GeoResolver
             return $cached;
         }
 
-        foreach (config('geo_restrict.services', []) as $service) {
+        foreach (config('geo-restrict.services', []) as $service) {
             $data = $this->resolveFromService($service, $ip);
             if ($data && !empty($data['country'])) {
                 if (!$this->isValidGeoData($data)) {
@@ -66,7 +67,7 @@ class GeoResolver
     /**
      * Try to resolve geo data from a single service definition.
      *
-     * @param mixed $service
+     * @param mixed  $service
      * @param string $ip
      *
      * @return array|null
@@ -106,7 +107,7 @@ class GeoResolver
      * Instantiate a provider and set options if needed.
      *
      * @param string $class
-     * @param array $options
+     * @param array  $options
      *
      * @return GeoServiceProviderInterface|null
      */
@@ -131,6 +132,8 @@ class GeoResolver
      * @param string $ip      IP address
      *
      * @return array|null Array with geo data or null on error
+     *
+     * @throws ConnectionException
      */
     private function getGeoDataFromArrayService(array $service, string $ip): ?array
     {

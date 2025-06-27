@@ -67,13 +67,13 @@ class RestrictAccessByGeo
         $url = $request->fullUrl();
 
         if (!$this->geoAccessService->passesRules($geoData)) {
-            if (config('geo_restrict.logging.blocked_requests', false)) {
+            if (config('geo-restrict.logging.blocked_requests', false)) {
                 Log::warning("GeoRestrict: Blocked {$ip} from {$country} accessing {$url}");
             }
             return $this->geoAccessService->denyResponse($geoData['country'] ?? null);
         }
 
-        if (config('geo_restrict.logging.allowed_requests', false)) {
+        if (config('geo-restrict.logging.allowed_requests', false)) {
             Log::info("GeoRestrict: Allowed {$ip} from {$country} accessing {$url}");
         }
 
@@ -89,8 +89,8 @@ class RestrictAccessByGeo
      */
     protected function shouldApply(Request $request): bool
     {
-        $only = config('geo_restrict.routes.only', []);
-        $except = config('geo_restrict.routes.except', []);
+        $only = config('geo-restrict.routes.only', []);
+        $except = config('geo-restrict.routes.except', []);
         $current = $request->route()?->getName() ?? $request->path();
 
         foreach ($except as $pattern) {
@@ -120,7 +120,7 @@ class RestrictAccessByGeo
      */
     protected function shouldApplyMethod(Request $request): bool
     {
-        $onlyMethods = config('geo_restrict.routes.methods', []);
+        $onlyMethods = config('geo-restrict.routes.methods', []);
         return empty($onlyMethods) || in_array($request->method(), $onlyMethods, true);
     }
 

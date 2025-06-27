@@ -3,38 +3,52 @@
 namespace Bespredel\GeoRestrict\Providers;
 
 use Bespredel\GeoRestrict\Contracts\GeoServiceProviderInterface;
+use Bespredel\GeoRestrict\Exceptions\GeoProviderException;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 abstract class AbstractGeoProvider implements GeoServiceProviderInterface
 {
     /**
-     * @var array Provider-specific options
+     * Provider-specific options
+     *
+     * @var array
      */
     protected array $options = [];
 
     /**
-     * @var string|null Базовый URL API
+     * Base URL
+     *
+     * @var string|null
      */
     protected ?string $baseUrl = null;
 
     /**
-     * @var string|null Endpoint-шаблон (может содержать {placeholders})
+     * Endpoint
+     *
+     * @var string|null
      */
     protected ?string $endpoint = null;
 
     /**
-     * @var array Список обязательных параметров для endpoint
+     * List of required parameters
+     *
+     * @var array
      */
     protected array $requiredParams = [];
 
     /**
-     * @var array Список необязательных параметров для endpoint
+     * List of optional parameters
+     *
+     * @var array
      */
     protected array $optionalParams = [];
 
     /**
-     * Карта соответствий для mapByMap
+     * List of response map
+     *
+     * @var array
      */
     protected array $responseMap = [];
 
@@ -51,16 +65,17 @@ abstract class AbstractGeoProvider implements GeoServiceProviderInterface
     }
 
     /**
-     * Build full URL: обязательные параметры в endpoint, необязательные — в query string
+     * Build full URL: base URL + endpoint + query string
      *
      * @param array $params
+     *
      * @return string
      */
     protected function buildUrl(array $params = []): string
     {
         $url = ($this->baseUrl ?? '') . ($this->endpoint ?? '');
 
-        // Подставляем обязательные параметры
+        // We replace placeholders with actual values
         $url = preg_replace_callback('/:(\w+)/', function ($matches) use ($params) {
             $key = $matches[1];
             if (!isset($params[$key]) || $params[$key] === '' || $params[$key] === null) {
@@ -70,7 +85,7 @@ abstract class AbstractGeoProvider implements GeoServiceProviderInterface
             return urlencode($params[$key]);
         }, $url);
 
-        // Собираем query string из необязательных поддерживаемых параметров
+        // Collect Query String from optional supported parameters
         $query = [];
         foreach ($this->optionalParams as $key) {
             if (isset($params[$key]) && $params[$key] !== '' && $params[$key] !== null) {
@@ -99,28 +114,39 @@ abstract class AbstractGeoProvider implements GeoServiceProviderInterface
         foreach ($map as $field => $path) {
             $result[$field] = data_get($data, $path);
         }
-        
+
         return $result;
     }
 
     /**
-     * Универсальный метод получения гео-данных
+     * Universal method to get geo data
+     *
+     * @param string $ip
+     *
+     * @return array|null
+     *
+     * @throws GeoProviderException
+     * @throws ConnectionException
      */
     public function getGeoData(string $ip): ?array
     {
         $params = $this->buildRequestParams($ip);
         $url = $this->buildUrl($params);
-        $response = \Illuminate\Support\Facades\Http::timeout(5)->get($url);
+        $response = Http::timeout(5)->get($url);
         $data = $response->json();
         if (!$response->successful() || !$this->isValidResponse($data)) {
-            throw new \Bespredel\GeoRestrict\Exceptions\GeoProviderException($this->getErrorMessage($data));
+            throw new GeoProviderException($this->getErrorMessage($data));
         }
-        
+
         return $this->mapByMap($data, $this->responseMap);
     }
 
     /**
-     * Собрать параметры для запроса (можно переопределять в наследниках)
+     * Build request parameters
+     *
+     * @param string $ip
+     *
+     * @return array
      */
     protected function buildRequestParams(string $ip): array
     {
@@ -141,12 +167,20 @@ abstract class AbstractGeoProvider implements GeoServiceProviderInterface
     }
 
     /**
-     * Проверка валидности ответа (переопределять в наследниках)
+     * Check if response is valid
+     *
+     * @param array $data
+     *
+     * @return bool
      */
     abstract protected function isValidResponse(array $data): bool;
 
     /**
-     * Сообщение об ошибке (переопределять в наследниках)
+     * Get error message
+     *
+     * @param array $data
+     *
+     * @return string
      */
     abstract protected function getErrorMessage(array $data): string;
 } 
