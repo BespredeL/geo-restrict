@@ -103,6 +103,7 @@ return [
             'deny'  => [
                 'country'  => [],
                 'region'   => [],
+                'city'     => [],
                 'asn'      => [],
                 'callback' => null, // function($geo) { return ...; }
                 'time'     => [
