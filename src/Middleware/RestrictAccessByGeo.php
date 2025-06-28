@@ -66,11 +66,12 @@ class RestrictAccessByGeo
         $country = $geoData['country'] ?? '??';
         $url = $request->fullUrl();
 
-        if (!$this->geoAccessService->passesRules($geoData)) {
+        $rulesResult = $this->geoAccessService->passesRules($geoData);
+        if ($rulesResult !== true) {
             if (config('geo-restrict.logging.blocked_requests', false)) {
                 Log::warning("GeoRestrict: Blocked {$ip} from {$country} accessing {$url}");
             }
-            return $this->geoAccessService->denyResponse($geoData['country'] ?? null);
+            return $this->geoAccessService->denyResponse($geoData['country'] ?? null, $rulesResult);
         }
 
         if (config('geo-restrict.logging.allowed_requests', false)) {

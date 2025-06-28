@@ -115,6 +115,7 @@ class GeoRestrictMiddlewareTest extends TestCase
         
         $response = $this->get('/test', ['X-Forwarded-For' => '8.8.8.8']);
         $response->assertStatus(403);
+        $response->assertSee(Lang::get('geo-restrict::messages.blocked_region'));
     }
 
     /**
@@ -135,6 +136,7 @@ class GeoRestrictMiddlewareTest extends TestCase
         
         $response = $this->get('/test', ['X-Forwarded-For' => '8.8.8.8']);
         $response->assertStatus(403);
+        $response->assertSee(Lang::get('geo-restrict::messages.blocked_city'));
     }
 
     /**
@@ -155,6 +157,7 @@ class GeoRestrictMiddlewareTest extends TestCase
         
         $response = $this->get('/test', ['X-Forwarded-For' => '8.8.8.8']);
         $response->assertStatus(403);
+        $response->assertSee(Lang::get('geo-restrict::messages.blocked_asn'));
     }
 
     /**
@@ -175,6 +178,7 @@ class GeoRestrictMiddlewareTest extends TestCase
         
         $response = $this->get('/test', ['X-Forwarded-For' => '8.8.8.8']);
         $response->assertStatus(403);
+        $response->assertSee(Lang::get('geo-restrict::messages.blocked_time'));
     }
 
     /**
@@ -263,6 +267,94 @@ class GeoRestrictMiddlewareTest extends TestCase
     }
 
     /**
+     * Test JSON response with region block
+     *
+     * @return void
+     */
+    public function test_json_response_region_block()
+    {
+        Config::set('geo-restrict.block_response.type', 'json');
+        Config::set('geo-restrict.access.rules.deny.region', ['Moscow']);
+        $this->setMockGeoData([
+            'country' => 'RU',
+            'region' => 'Moscow',
+            'city' => 'Moscow',
+            'asn' => 'AS12345',
+            'isp' => 'Test ISP'
+        ]);
+        
+        $response = $this->get('/test', ['X-Forwarded-For' => '8.8.8.8']);
+        $response->assertStatus(403);
+        $response->assertJsonFragment(['message' => Lang::get('geo-restrict::messages.blocked_region')]);
+    }
+
+    /**
+     * Test JSON response with city block
+     *
+     * @return void
+     */
+    public function test_json_response_city_block()
+    {
+        Config::set('geo-restrict.block_response.type', 'json');
+        Config::set('geo-restrict.access.rules.deny.city', ['Berlin']);
+        $this->setMockGeoData([
+            'country' => 'DE',
+            'region' => 'Berlin',
+            'city' => 'Berlin',
+            'asn' => 'AS12345',
+            'isp' => 'Test ISP'
+        ]);
+        
+        $response = $this->get('/test', ['X-Forwarded-For' => '8.8.8.8']);
+        $response->assertStatus(403);
+        $response->assertJsonFragment(['message' => Lang::get('geo-restrict::messages.blocked_city')]);
+    }
+
+    /**
+     * Test JSON response with ASN block
+     *
+     * @return void
+     */
+    public function test_json_response_asn_block()
+    {
+        Config::set('geo-restrict.block_response.type', 'json');
+        Config::set('geo-restrict.access.rules.deny.asn', ['AS12345']);
+        $this->setMockGeoData([
+            'country' => 'US',
+            'region' => 'California',
+            'city' => 'Los Angeles',
+            'asn' => 'AS12345',
+            'isp' => 'Test ISP'
+        ]);
+        
+        $response = $this->get('/test', ['X-Forwarded-For' => '8.8.8.8']);
+        $response->assertStatus(403);
+        $response->assertJsonFragment(['message' => Lang::get('geo-restrict::messages.blocked_asn')]);
+    }
+
+    /**
+     * Test JSON response with time block
+     *
+     * @return void
+     */
+    public function test_json_response_time_block()
+    {
+        Config::set('geo-restrict.block_response.type', 'json');
+        Config::set('geo-restrict.access.rules.deny.time', [['from' => '00:00', 'to' => '23:59']]);
+        $this->setMockGeoData([
+            'country' => 'RU',
+            'region' => 'Moscow',
+            'city' => 'Moscow',
+            'asn' => 'AS12345',
+            'isp' => 'Test ISP'
+        ]);
+        
+        $response = $this->get('/test', ['X-Forwarded-For' => '8.8.8.8']);
+        $response->assertStatus(403);
+        $response->assertJsonFragment(['message' => Lang::get('geo-restrict::messages.blocked_time')]);
+    }
+
+    /**
      * Test view response type
      *
      * @return void
@@ -284,6 +376,30 @@ class GeoRestrictMiddlewareTest extends TestCase
         $response->assertStatus(403);
         $response->assertViewIs('errors.geo_blocked');
         $response->assertViewHas('message', Lang::get('geo-restrict::messages.blocked'));
+    }
+
+    /**
+     * Test view response with region block
+     *
+     * @return void
+     */
+    public function test_view_response_region_block()
+    {
+        Config::set('geo-restrict.block_response.type', 'view');
+        Config::set('geo-restrict.block_response.view', 'errors.geo_blocked');
+        Config::set('geo-restrict.access.rules.deny.region', ['Moscow']);
+        $this->setMockGeoData([
+            'country' => 'RU',
+            'region' => 'Moscow',
+            'city' => 'Moscow',
+            'asn' => 'AS12345',
+            'isp' => 'Test ISP'
+        ]);
+        
+        $response = $this->get('/test', ['X-Forwarded-For' => '8.8.8.8']);
+        $response->assertStatus(403);
+        $response->assertViewIs('errors.geo_blocked');
+        $response->assertViewHas('message', Lang::get('geo-restrict::messages.blocked_region'));
     }
 
     /**

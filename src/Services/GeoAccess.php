@@ -71,9 +71,9 @@ class GeoAccess
      *
      * @param array $geo
      *
-     * @return bool
+     * @return array|bool Returns false if blocked, or array with reason if blocked
      */
-    public function passesRules(array $geo): bool
+    public function passesRules(array $geo): array|bool
     {
         $rules = config('geo-restrict.access.rules', []);
 
@@ -87,11 +87,11 @@ class GeoAccess
                 $toTime = now()->copy()->setTimeFromTimeString($to);
                 if ($fromTime > $toTime) {
                     if ($now >= $fromTime || $now <= $toTime) {
-                        return false;
+                        return ['reason' => 'time', 'field' => 'time'];
                     }
                 } else {
                     if ($now >= $fromTime && $now <= $toTime) {
-                        return false;
+                        return ['reason' => 'time', 'field' => 'time'];
                     }
                 }
             }
@@ -100,27 +100,37 @@ class GeoAccess
         // Callback denial
         if (is_callable($rules['deny']['callback'] ?? null)) {
             if (call_user_func($rules['deny']['callback'], $geo) === true) {
-                return false;
+                return ['reason' => 'callback', 'field' => 'callback'];
             }
         }
 
         // Field-based denial
         foreach ($rules['deny'] ?? [] as $field => $blocked) {
-            if (in_array($field, ['callback', 'time'], true)) continue;
-            if (in_array($geo[$field] ?? null, $blocked, true)) return false;
+            if (in_array($field, ['callback', 'time'], true)) {
+                continue;
+            }
+
+            if (in_array($geo[$field] ?? null, $blocked, true)) {
+                return ['reason' => $field, 'field' => $field, 'value' => $geo[$field] ?? null];
+            }
         }
 
         // Callback allow
         if (is_callable($rules['allow']['callback'] ?? null)) {
             if (call_user_func($rules['allow']['callback'], $geo) !== true) {
-                return false;
+                return ['reason' => 'callback_allow', 'field' => 'callback'];
             }
         }
 
         // Field-based allow
         foreach ($rules['allow'] ?? [] as $field => $allowed) {
-            if ($field === 'callback') continue;
-            if (!in_array($geo[$field] ?? null, $allowed, true)) return false;
+            if ($field === 'callback') {
+                continue;
+            }
+
+            if (!in_array($geo[$field] ?? null, $allowed) && $allowed) {
+                return ['reason' => $field . '_not_allowed', 'field' => $field, 'value' => $geo[$field] ?? null];
+            }
         }
 
         return true;
@@ -130,10 +140,11 @@ class GeoAccess
      * Form Deny Response (Abort, Json, View)
      *
      * @param string|null $reason
+     * @param array|null  $blockInfo
      *
      * @return Response
      */
-    public function denyResponse(?string $reason = null): Response
+    public function denyResponse(?string $reason = null, ?array $blockInfo = null): Response
     {
         $type = config('geo-restrict.block_response.type', 'abort');
         $json = config('geo-restrict.block_response.json', []);
@@ -144,8 +155,32 @@ class GeoAccess
             app()->setLocale($locale);
         }
 
-        $message = Lang::get('geo-restrict::messages.blocked');
-        if ($message === 'geo-restrict.blocked') {
+        // Определяем ключ сообщения на основе причины блокировки
+        $messageKey = 'blocked';
+        if ($blockInfo && isset($blockInfo['reason'])) {
+            $reasonType = $blockInfo['reason'];
+            switch ($reasonType) {
+                case 'time':
+                    $messageKey = 'blocked_time';
+                    break;
+                case 'region':
+                    $messageKey = 'blocked_region';
+                    break;
+                case 'city':
+                    $messageKey = 'blocked_city';
+                    break;
+                case 'asn':
+                    $messageKey = 'blocked_asn';
+                    break;
+                case 'country':
+                default:
+                    $messageKey = 'blocked';
+                    break;
+            }
+        }
+
+        $message = Lang::get('geo-restrict::messages.' . $messageKey);
+        if ($message === 'geo-restrict::messages.' . $messageKey) {
             $message = 'Access denied by geo restriction.';
         }
 
