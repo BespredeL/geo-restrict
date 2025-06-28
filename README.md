@@ -10,7 +10,8 @@
 [![PHP from Packagist](https://img.shields.io/packagist/php-v/bespredel/geo-restrict.svg?logo=php&logoColor=white&color=777BB4)](https://php.net)
 [![Laravel Version](https://img.shields.io/badge/laravel-%3E%3D10-FF2D20?logo=laravel)](https://laravel.com)
 
-GeoRestrict is a Laravel middleware that restricts access to your application based on the user's IP geolocation (country, region, ASN, city, ISP, etc).
+GeoRestrict is a Laravel middleware that restricts access to your application based on the user's IP geolocation (country, region, ASN, city, ISP,
+etc).
 
 ## Features
 
@@ -145,14 +146,15 @@ return [
 
 #### Supported Providers and Parameters
 
-| Provider      | Class                 | Required Params      | Optional Params |
-| -------------- | --------------------- | ---------------------- | ------------------------ |
-| IP2Location.io | Ip2LocationIoProvider | api_key, ip            | lang                     |
-| ipwho.is       | IpWhoIsProvider       | ip                     | api_key                  |
-| ip-api.com     | IpApiComProvider      | ip                     | lang                     |
-| ipapi.co       | IpApiCoProvider       | ip                     | lang                     |
+| Provider       | Class                 | Required Params | Optional Params |
+|----------------|-----------------------|-----------------|-----------------|
+| IP2Location.io | Ip2LocationIoProvider | api_key, ip     | lang            |
+| ipwho.is       | IpWhoIsProvider       | ip              | api_key         |
+| ip-api.com     | IpApiComProvider      | ip              | lang            |
+| ipapi.co       | IpApiCoProvider       | ip              | lang            |
 
-Only parameters listed in `requiredParams` and `optionalParams` for each provider will be used in the request. If a required parameter is missing, an error will be thrown and logged. Optional parameters are included only if set in config.
+Only parameters listed in `requiredParams` and `optionalParams` for each provider will be used in the request. If a required parameter is missing, an
+error will be thrown and logged. Optional parameters are included only if set in config.
 
 ---
 
@@ -228,7 +230,8 @@ php artisan vendor:publish --provider="Bespredel\GeoRestrict\GeoRestrictServiceP
 
 2. Edit files in `resources/lang/vendor/geo-restrict/` as needed. Add new locales by creating new folders (e.g., `it`, `es`).
 
-- The block message is automatically shown in the user's country language (based on the country code, if a corresponding language file exists), or in the application's default language.
+- The block message is automatically shown in the user's country language (based on the country code, if a corresponding language file exists), or in
+  the application's default language.
 - To add a new language, create a file like:
 
 ```
@@ -237,23 +240,6 @@ resources/lang/it/messages.php
 
 No code changes are required — the language is detected automatically based on the country code (e.g., IT, FR, DE, RU, EN, etc.).
 
-## Testing
-
-The package is covered by tests for:
-
-- Country, region, city, ASN blocking
-- Time-based deny restrictions
-- Custom callback functions
-- Allowed IPs and countries
-- Response types: JSON, view, abort
-- Message localization
-
-Tests are located in the `tests/` directory.
-
-### Run tests
-
-```
-./vendor/bin/phpunit
-```
+## License
 
 MIT 
