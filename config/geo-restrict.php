@@ -13,54 +13,52 @@ return [
     */
     'services'       => [
         [
-            'name' => 'ipwho.is',
-            'url'  => 'https://ipwho.is/:ip',
-            'map'  => [
-                'country' => 'country_code',
-                'region'  => 'region',
-                'city'    => 'city',
-                'asn'     => 'connection.asn',
-                'isp'     => 'connection.isp',
-            ],
+            'provider' => \Bespredel\GeoRestrict\Providers\IpWhoIsProvider::class,
+            'options'  => [],
         ],
-
         [
-            'name' => 'ip-api.com',
-            'url'  => 'http://ip-api.com/json/:ip',
-            'map'  => [
-                'country' => 'countryCode',
-                'region'  => 'region',
-                'city'    => 'city',
-                'asn'     => 'as',
-                'isp'     => 'isp',
+            'provider' => \Bespredel\GeoRestrict\Providers\IpApiComProvider::class,
+            'options'  => [
+                'api_key' => 'your-api-key',
+                'lang'    => 'en', // optional
             ],
         ],
-
         [
-            'name' => 'ipapi.co',
-            'url'  => 'https://ipapi.co/:ip/json/',
-            'map'  => [
-                'country' => 'country_code',
-                'region'  => 'region_code',
-                'city'    => 'city',
-                'asn'     => 'asn',
-                'isp'     => 'org',
+            'provider' => \Bespredel\GeoRestrict\Providers\IpApiCoProvider::class,
+            'options'  => [],
+        ],
+        [
+            'provider' => \Bespredel\GeoRestrict\Providers\Ip2LocationIoProvider::class,
+            'options'  => [
+                'api_key' => 'your-ip2location-api-key',
+                'lang'    => 'en', // optional
             ],
         ],
 
-        // Add more services here; order defines priority.
+        // Support custom providers raw format
+        // [
+        //     'name' => 'custom',
+        //     'url'  => 'https://example.com/:ip',
+        //     'map'  => [
+        //         'country' => 'country_code',
+        //         'region'  => 'region',
+        //         'city'    => 'city',
+        //         'asn'     => 'asn',
+        //         'isp'     => 'isp',
+        //     ],
+        // ],
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Geo: Caching & Rate Limiting
+    | Geo Services: Caching & Rate Limiting
     |--------------------------------------------------------------------------
     |
     | cache_ttl   - Duration in minutes to cache IP geo data (0 = disabled)
     | rate_limit  - Max number of requests per IP per minute
     |
     */
-    'geo'            => [
+    'geo_services'   => [
         'cache_ttl'  => 1440,
         'rate_limit' => 30,
     ],
@@ -70,6 +68,7 @@ return [
     | Access: Whitelist & Rule-Based Restrictions
     |--------------------------------------------------------------------------
     |
+    | local_ips       - Always allowed local IP addresses
     | whitelisted_ips - Always allowed IP addresses (local IPs are allowed by default)
     |
     | Rules:
@@ -127,9 +126,9 @@ return [
     */
     'block_response' => [
         'type' => 'abort',
-        'view' => 'errors.geo_blocked',
+        'view' => 'errors.403',
         'json' => [
-            'message' => 'Access denied: your region is restricted.',
+            'message' => null, // By default, taken from the language file
         ],
     ],
 
@@ -147,5 +146,23 @@ return [
         'only'    => [],
         'except'  => [],
         'methods' => [],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Local Networks (for isLocalIp)
+    |--------------------------------------------------------------------------
+    |
+    | List of IPs or CIDR blocks considered as local/private.
+    | Used by isLocalIp().
+    |
+    */
+    'local_networks' => [
+        '127.0.0.1',
+        '::1',
+        '10.0.0.0/8',
+        '192.168.0.0/16',
+        '172.16.0.0/12',
+        // Add more as needed
     ],
 ];

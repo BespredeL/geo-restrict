@@ -21,7 +21,7 @@
 - Гибкая настройка allow/deny правил, включая callback-функции и временные ограничения
 - Белый список IP
 - Гибкая настройка маршрутов (паттерны, методы)
-- Локализация текстов ошибок
+- Локализация текстов ошибок (мультиязычность, легко расширять)
 - Разные ответы для разных стран/правил
 - Логирование блокировок и разрешённых запросов
 
@@ -39,28 +39,56 @@ composer require bespredel/geo-restrict
 php artisan vendor:publish --provider="Bespredel\GeoRestrict\GeoRestrictServiceProvider" --tag=geo-restrict-config
 ```
 
-## Пример конфига `config/geo_restrict.php`
+3. (Опционально) Опубликуйте языковые файлы для кастомизации:
+
+```bash
+php artisan vendor:publish --provider="Bespredel\GeoRestrict\GeoRestrictServiceProvider" --tag=geo-restrict-lang
+```
+
+## Пример конфига `config/geo-restrict.php`
 
 ```php
 return [
     'services' => [
+        // Пример провайдера с опциями
         [
-            'name' => 'ipwho.is',
-            'url'  => 'https://ipwho.is/:ip',
-            'map'  => [
-                'country' => 'country_code',
-                'region'  => 'region',
-                'city'    => 'city',
-                'asn'     => 'connection.asn',
-                'isp'     => 'connection.isp',
+            'provider' => \Bespredel\GeoRestrict\Providers\Ip2LocationIoProvider::class,
+            'options'  => [
+                'api_key' => 'your-ip2location-api-key', // обязательно
+                'lang'    => 'en', // опционально
             ],
         ],
+
+        // Пример провайдеров без опций
+        \Bespredel\GeoRestrict\Providers\IpWhoIsProvider::class,
+
+        // или
+        [
+            'provider' => \Bespredel\GeoRestrict\Providers\IpWhoIsProvider::class,
+            'options'  => [],
+        ],
+
+        // Пример провайдера в массиве
+        [
+             'name' => 'ipapi.co',
+             'url'  => 'https://ipapi.co/:ip/json/',
+             'map'  => [
+                 'country' => 'country_code',
+                'region'  => 'region_code',
+                'city'    => 'city',
+                'asn'     => 'asn',
+                'isp'     => 'org',
+             ],
+         ],
+
         // Добавьте другие сервисы, порядок определяет приоритет
     ],
-    'geo' => [
-        'cache_ttl'  => 1440, // В минутах, 0 = кэш отключён
-        'rate_limit' => 30,   // Запросов в минуту на IP
+
+    'geo_services' => [
+        'cache_ttl'  => 1440,
+        'rate_limit' => 30,
     ],
+
     'access' => [
         'whitelisted_ips' => ['127.0.0.1'],
         'rules' => [
@@ -82,10 +110,12 @@ return [
             ],
         ],
     ],
+
     'logging' => [
         'blocked_requests' => true,
         'allowed_requests' => false,
     ],
+
     'block_response' => [
         'type'  => 'abort', // 'abort', 'json', 'view'
         'view'  => 'errors.geo_blocked',
@@ -93,6 +123,7 @@ return [
             'message' => 'Access denied: your region is restricted.',
         ],
     ],
+    
     'routes' => [
         'only'    => [], // ['admin/*', 'api/v1/*']
         'except'  => [],
@@ -103,14 +134,66 @@ return [
 
 ### Описание основных параметров
 
-- **services** — список geo-сервисов, используемых для определения местоположения по IP. Можно добавить несколько, порядок определяет приоритет.
-- **geo.cache_ttl** — время жизни кэша (в минутах), 0 — кэш отключён.
-- **geo.rate_limit** — ограничение количества запросов к geo-сервисам с одного IP в минуту.
+- **services** — список geo-сервисов, используемых для определения местоположения по IP. Каждый провайдер поддерживает только свои параметры (см.
+  таблицу ниже).
+- **geo_services.cache_ttl** — время жизни кэша (в минутах), 0 — кэш отключён.
+- **geo_services.rate_limit** — ограничение количества запросов к geo-сервисам с одного IP в минуту.
 - **access.whitelisted_ips** — IP-адреса, которым всегда разрешён доступ (по умолчанию localhost).
 - **access.rules.allow/deny** — правила разрешения/запрета по стране, региону, ASN, callback-функции и времени.
 - **logging** — параметры логирования (блокировки, разрешённые запросы).
 - **block_response.type** — тип ответа при блокировке: 'abort' (стандартный abort), 'json' (JSON-ответ), 'view' (рендер view).
 - **routes.only/except/methods** — ограничения по маршрутам и HTTP-методам.
+
+#### Поддерживаемые провайдеры и параметры
+
+| Провайдер      | Класс                 | Обязательные параметры | Необязательные параметры |
+|----------------|-----------------------|------------------------|--------------------------|
+| IP2Location.io | Ip2LocationIoProvider | api_key, ip            | lang                     |
+| ipwho.is       | IpWhoIsProvider       | ip                     | api_key                  |
+| ip-api.com     | IpApiComProvider      | ip                     | lang                     |
+| ipapi.co       | IpApiCoProvider       | ip                     | lang                     |
+
+В запросе будут использоваться только параметры, указанные в `requiredParams` и `optionalParams` для каждого провайдера. Если обязательный параметр не
+задан, будет выброшена и залогирована ошибка. Необязательные параметры добавляются только если заданы в конфиге.
+
+---
+
+### Архитектура провайдеров
+
+Все geo-провайдеры теперь наследуются от `AbstractGeoProvider` и должны определить только:
+
+- `baseUrl`, `endpoint` (с плейсхолдерами :param)
+- `requiredParams`, `optionalParams`
+- `responseMap` (карта соответствий полей API)
+- `isValidResponse(array $data)` (проверка валидности ответа)
+- `getErrorMessage(array $data)` (текст ошибки для невалидного ответа)
+
+**Пример минимального провайдера:**
+
+```php
+class ExampleProvider extends AbstractGeoProvider {
+    protected ?string $baseUrl = 'https://example.com/';
+    protected ?string $endpoint = 'api/:ip';
+    protected array $requiredParams = ['ip'];
+    protected array $optionalParams = ['lang'];
+    protected array $responseMap = [
+        'country' => 'country_code',
+        'region'  => 'region',
+        'city'    => 'city',
+        'asn'     => 'asn',
+        'isp'     => 'isp',
+    ];
+    protected function isValidResponse(array $data): bool {
+        return isset($data['country_code']);
+    }
+    protected function getErrorMessage(array $data): string {
+        return 'example.com: invalid response';
+    }
+    public function getName(): string { return 'example.com'; }
+}
+```
+
+Это упрощает добавление новых провайдеров и гарантирует единообразие и отсутствие дублирования логики.
 
 ## Использование
 
@@ -133,65 +216,30 @@ Route::get('/secret', 'SecretController@index')->middleware('geo.restrict');
 - Добавьте свои geo-сервисы в массив `services`, порядок определяет приоритет.
 - Используйте allow/deny правила для гибкой фильтрации.
 - Для сложных кейсов используйте callback-функции в правилах.
-- Для локализации ошибок используйте файлы языков.
+- Для локализации ошибок используйте языковые файлы.
 
-## Тестирование
+## Локализация и языковые файлы
 
-Пакет покрыт тестами, которые проверяют:
+GeoRestrict поддерживает мультиязычные сообщения о блокировке. Для кастомизации или добавления новых переводов:
 
-- Блокировку по стране, региону, городу, ASN
-- Временные ограничения (time-based deny)
-- Кастомные callback-функции
-- Разрешённые IP и страны
-- Типы ответов: JSON, View, стандартный abort
-- Локализацию сообщений о блокировке
-
-Тесты находятся в директории `tests/` и используют Laravel TestCase.
-
-### Запуск тестов
+1. Опубликуйте языковые файлы:
 
 ```bash
-./vendor/bin/phpunit
+php artisan vendor:publish --provider="Bespredel\GeoRestrict\GeoRestrictServiceProvider" --tag=geo-restrict-lang
 ```
 
-или, если PHPUnit установлен глобально:
+2. Редактируйте файлы в `resources/lang/vendor/geo-restrict/` по необходимости. Для новых языков создайте новую папку (например, `it`, `es`).
 
-```bash
-phpunit
+- Сообщение о блокировке автоматически выводится на языке страны пользователя (по коду страны, если есть соответствующий языковой файл), либо на языке
+  приложения по умолчанию.
+- Чтобы добавить поддержку нового языка, создайте файл:
+
+```
+resources/lang/it/messages.php
 ```
 
-Пример теста:
-
-```php
-public function test_blocked_country_gets_403_and_localized_message()
-{
-    Config::set('geo_restrict.access.rules.deny.country', ['DE']);
-    $this->withSession(['geoip' => ['country' => 'DE']]);
-    $response = $this->get('/test', ['X-Forwarded-For' => '8.8.8.8']);
-    $response->assertStatus(403);
-    $response->assertSee(Lang::get('geo_restrict.blocked', [], 'de'));
-}
-```
-
-Для добавления новых тестов используйте структуру из файла `tests/GeoRestrictMiddlewareTest.php`.
+Изменения в коде не требуются — язык определяется автоматически по коду страны (например, IT, FR, DE, RU, EN и др.).
 
 ## Лицензия
 
 MIT
-
-### Локализация сообщений
-
-Сообщение о блокировке автоматически выводится на языке страны пользователя (по коду страны, если есть соответствующий языковой файл), либо на языке
-приложения.
-
-Чтобы добавить поддержку нового языка, создайте файл:
-
-resources/lang/it/geo_restrict.php:
-
-```php
-return [
-    'blocked' => 'Accesso negato: la tua regione è soggetta a restrizioni.',
-];
-```
-
-В коде ничего менять не нужно — язык будет определён автоматически по коду страны (например, IT, FR, DE, RU, EN и т.д.). 
