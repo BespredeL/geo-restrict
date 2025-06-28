@@ -20,7 +20,7 @@ etc).
 - Geo response caching (can be disabled)
 - Rate limiting for geo service requests
 - Flexible allow/deny rules, including callbacks and time-based restrictions
-- IP whitelist
+- IP whitelist (local addresses are always allowed)
 - Route targeting via patterns and HTTP methods
 - Localized error messages (multi-language, easy to extend)
 - Different responses per country/rule
@@ -103,6 +103,7 @@ return [
             'deny'  => [
                 'country'  => [],
                 'region'   => [],
+                'city'     => [],
                 'asn'      => [],
                 'callback' => null, // function($geo) { return ...; }
                 'time'     => [
