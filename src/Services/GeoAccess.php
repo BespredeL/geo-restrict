@@ -85,11 +85,15 @@ class GeoAccess
                 $now = now();
                 $fromTime = now()->copy()->setTimeFromTimeString($from);
                 $toTime = now()->copy()->setTimeFromTimeString($to);
+                
+                // Если период пересекает полночь (from > to)
                 if ($fromTime > $toTime) {
+                    // Проверяем: сейчас >= fromTime ИЛИ сейчас <= toTime
                     if ($now >= $fromTime || $now <= $toTime) {
                         return ['reason' => 'time', 'field' => 'time'];
                     }
                 } else {
+                    // Обычный период в пределах одного дня
                     if ($now >= $fromTime && $now <= $toTime) {
                         return ['reason' => 'time', 'field' => 'time'];
                     }
@@ -129,7 +133,7 @@ class GeoAccess
             }
 
             if (!in_array($geo[$field] ?? null, $allowed) && $allowed) {
-                return ['reason' => $field . '_not_allowed', 'field' => $field, 'value' => $geo[$field] ?? null];
+                return ['reason' => $field, 'field' => $field, 'value' => $geo[$field] ?? null];
             }
         }
 
@@ -158,7 +162,7 @@ class GeoAccess
         // We determine the message key based on the cause of the lock
         $messageKey = 'blocked';
         if ($blockInfo && isset($blockInfo['reason'])) {
-            $reasonType = $blockInfo['reason'] . '_not_allowed';
+            $reasonType = $blockInfo['reason'];
             switch ($reasonType) {
                 case 'time':
                     $messageKey = 'blocked_time';
