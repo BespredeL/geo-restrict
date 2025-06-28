@@ -79,7 +79,6 @@ return [
     |
     */
     'access'         => [
-        'local_ips'       => true,
         'whitelisted_ips' => [],
         'rules'           => [
             'allow' => [
