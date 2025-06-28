@@ -68,6 +68,7 @@ return [
     | Access: Whitelist & Rule-Based Restrictions
     |--------------------------------------------------------------------------
     |
+    | local_ips       - Always allowed local IP addresses
     | whitelisted_ips - Always allowed IP addresses (local IPs are allowed by default)
     |
     | Rules:
@@ -78,6 +79,7 @@ return [
     |
     */
     'access'         => [
+        'local_ips'       => true,
         'whitelisted_ips' => [],
         'rules'           => [
             'allow' => [
