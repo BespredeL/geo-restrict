@@ -81,22 +81,24 @@ class GeoAccess
         foreach ($rules['deny']['time'] ?? [] as $period) {
             $from = $period['from'] ?? null;
             $to = $period['to'] ?? null;
+
             if ($from && $to) {
                 $now = now();
-                $fromTime = now()->copy()->setTimeFromTimeString($from);
-                $toTime = now()->copy()->setTimeFromTimeString($to);
-                
-                // Если период пересекает полночь (from > to)
+                $today = $now->copy()->startOfDay();
+
+                $fromTime = $today->copy()->setTimeFromTimeString($from);
+                $toTime = $today->copy()->setTimeFromTimeString($to);
+
                 if ($fromTime > $toTime) {
-                    // Проверяем: сейчас >= fromTime ИЛИ сейчас <= toTime
-                    if ($now >= $fromTime || $now <= $toTime) {
-                        return ['reason' => 'time', 'field' => 'time'];
+                    if ($now < $toTime) {
+                        $fromTime->subDay();
+                    } else {
+                        $toTime->addDay();
                     }
-                } else {
-                    // Обычный период в пределах одного дня
-                    if ($now >= $fromTime && $now <= $toTime) {
-                        return ['reason' => 'time', 'field' => 'time'];
-                    }
+                }
+
+                if ($now->between($fromTime, $toTime)) {
+                    return ['reason' => 'time', 'field' => 'time'];
                 }
             }
         }
