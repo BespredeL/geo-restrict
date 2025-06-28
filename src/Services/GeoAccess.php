@@ -155,10 +155,10 @@ class GeoAccess
             app()->setLocale($locale);
         }
 
-        // Определяем ключ сообщения на основе причины блокировки
+        // We determine the message key based on the cause of the lock
         $messageKey = 'blocked';
         if ($blockInfo && isset($blockInfo['reason'])) {
-            $reasonType = $blockInfo['reason'];
+            $reasonType = $blockInfo['reason'] . '_not_allowed';
             switch ($reasonType) {
                 case 'time':
                     $messageKey = 'blocked_time';
