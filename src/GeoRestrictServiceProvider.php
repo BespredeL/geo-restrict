@@ -26,6 +26,6 @@ class GeoRestrictServiceProvider extends ServiceProvider
 
         $this->loadTranslationsFrom(__DIR__ . '/../resources/lang', 'geo-restrict');
 
-        app('router')->aliasMiddleware('geo.restrict', RestrictAccessByGeo::class);
+        app('router')->aliasMiddleware('geo-restrict', RestrictAccessByGeo::class);
     }
 }

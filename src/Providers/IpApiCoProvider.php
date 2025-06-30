@@ -4,11 +4,30 @@ namespace Bespredel\GeoRestrict\Providers;
 
 class IpApiCoProvider extends AbstractGeoProvider
 {
-    protected ?string $baseUrl        = 'https://ipapi.co/';
-    protected ?string $endpoint       = ':ip/json/';
-    protected array   $requiredParams = ['ip'];
-    protected array   $optionalParams = ['lang'];
-    protected array   $responseMap    = [
+    /**
+     * @var string|null
+     */
+    protected ?string $baseUrl = 'https://ipapi.co/';
+
+    /**
+     * @var string|null
+     */
+    protected ?string $endpoint = ':ip/json/';
+
+    /**
+     * @var array|string[]
+     */
+    protected array $requiredParams = ['ip'];
+
+    /**
+     * @var array|string[]
+     */
+    protected array $optionalParams = ['lang'];
+
+    /**
+     * @var array|string[]
+     */
+    protected array $responseMap = [
         'country' => 'country_code',
         'region'  => 'region_code',
         'city'    => 'city',

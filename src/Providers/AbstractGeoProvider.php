@@ -75,7 +75,7 @@ abstract class AbstractGeoProvider implements GeoServiceProviderInterface
     {
         $url = ($this->baseUrl ?? '') . ($this->endpoint ?? '');
 
-        // We replace placeholders with actual values
+        // Replace placeholders with actual values
         $url = preg_replace_callback('/:(\w+)/', function ($matches) use ($params) {
             $key = $matches[1];
             if (!isset($params[$key]) || $params[$key] === '' || $params[$key] === null) {
@@ -130,10 +130,35 @@ abstract class AbstractGeoProvider implements GeoServiceProviderInterface
      */
     public function getGeoData(string $ip): ?array
     {
+        if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+            throw new \InvalidArgumentException("Invalid IP address provided.");
+        }
+
         $params = $this->buildRequestParams($ip);
         $url = $this->buildUrl($params);
-        $response = Http::timeout(5)->get($url);
+
+        $parsed = parse_url($url);
+        $host = $parsed['host'] ?? null;
+        if ($host && filter_var($host, FILTER_VALIDATE_IP)) {
+            if (!filter_var($host, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                throw new GeoProviderException("Disallowed host for geo provider: {$host}");
+            }
+        }
+
+        try {
+            $response = Http::timeout(5)->get($url);
+        }
+        catch (ConnectionException $e) {
+            Log::error("GeoProvider: connection error in " . static::class . " - " . $e->getMessage());
+            throw $e;
+        }
+        catch (\Throwable $e) {
+            Log::error("GeoProvider: unexpected error in " . static::class . " - " . $e->getMessage());
+            throw new GeoProviderException("Unexpected error occurred while requesting geo data.");
+        }
+
         $data = $response->json();
+
         if (!$response->successful() || !$this->isValidResponse($data)) {
             throw new GeoProviderException($this->getErrorMessage($data));
         }
@@ -151,6 +176,7 @@ abstract class AbstractGeoProvider implements GeoServiceProviderInterface
     protected function buildRequestParams(string $ip): array
     {
         $params = ['ip' => $ip];
+
         foreach ($this->optionalParams as $key) {
             if (isset($this->options[$key])) {
                 $params[$key] = $this->options[$key];
@@ -183,4 +209,4 @@ abstract class AbstractGeoProvider implements GeoServiceProviderInterface
      * @return string
      */
     abstract protected function getErrorMessage(array $data): string;
-} 
+}
