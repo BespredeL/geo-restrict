@@ -4,11 +4,30 @@ namespace Bespredel\GeoRestrict\Providers;
 
 class IpApiComProvider extends AbstractGeoProvider
 {
-    protected ?string $baseUrl        = 'http://ip-api.com/';
-    protected ?string $endpoint       = 'json/:ip';
-    protected array   $requiredParams = ['ip'];
-    protected array   $optionalParams = ['lang'];
-    protected array   $responseMap    = [
+    /**
+     * @var string|null
+     */
+    protected ?string $baseUrl = 'http://ip-api.com/';
+
+    /**
+     * @var string|null
+     */
+    protected ?string $endpoint = 'json/:ip';
+
+    /**
+     * @var array|string[]
+     */
+    protected array $requiredParams = ['ip'];
+
+    /**
+     * @var array|string[]
+     */
+    protected array $optionalParams = ['lang'];
+
+    /**
+     * @var array|string[]
+     */
+    protected array $responseMap = [
         'country' => 'countryCode',
         'region'  => 'region',
         'city'    => 'city',

@@ -74,6 +74,12 @@ class GeoResolver
      */
     private function resolveFromService(mixed $service, string $ip): ?array
     {
+        $serviceName = match (true) {
+            is_array($service) => $service['name'] ?? 'array_service',
+            is_string($service) => $service,
+            default => 'unknown',
+        };
+
         try {
             // Array with 'provider' key (with options)
             if (is_array($service) && isset($service['provider'])) {
@@ -96,7 +102,6 @@ class GeoResolver
             Log::error("GeoProvider error: " . $e->getMessage());
         }
         catch (\Throwable $e) {
-            $serviceName = is_array($service) ? ($service['name'] ?? 'array_service') : (is_string($service) ? $service : 'unknown');
             Log::debug("GeoRestrict: API {$serviceName} failed for {$ip}: {$e->getMessage()}");
         }
 

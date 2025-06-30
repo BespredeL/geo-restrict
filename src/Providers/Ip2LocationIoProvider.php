@@ -4,11 +4,30 @@ namespace Bespredel\GeoRestrict\Providers;
 
 class Ip2LocationIoProvider extends AbstractGeoProvider
 {
-    protected ?string $baseUrl        = 'https://api.ip2location.io/';
-    protected ?string $endpoint       = '?key=:api_key&ip=:ip';
-    protected array   $requiredParams = ['api_key', 'ip'];
-    protected array   $optionalParams = ['lang'];
-    protected array   $responseMap    = [
+    /**
+     * @var string|null
+     */
+    protected ?string $baseUrl = 'https://api.ip2location.io/';
+
+    /**
+     * @var string|null
+     */
+    protected ?string $endpoint = '?key=:api_key&ip=:ip';
+
+    /**
+     * @var array|string[]
+     */
+    protected array $requiredParams = ['api_key', 'ip'];
+
+    /**
+     * @var array|string[]
+     */
+    protected array $optionalParams = ['lang'];
+
+    /**
+     * @var array|string[]
+     */
+    protected array $responseMap = [
         'country' => 'country_code',
         'region'  => 'region_name',
         'city'    => 'city_name',

@@ -38,12 +38,19 @@ class GeoAccess
     protected function ipInCidr(string $ip, string $cidr): bool
     {
         [$subnet, $mask] = explode('/', $cidr);
-        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && filter_var($subnet, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)
+            && filter_var($subnet, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)
+        ) {
             $ipLong = ip2long($ip);
             $subnetLong = ip2long($subnet);
             $maskLong = -1 << (32 - (int)$mask);
             return ($ipLong & $maskLong) === ($subnetLong & $maskLong);
-        } elseif (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) && filter_var($subnet, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+        }
+
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)
+            && filter_var($subnet, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)
+        ) {
             $ipBin = inet_pton($ip);
             $subnetBin = inet_pton($subnet);
             $maskBin = str_repeat("f", $mask / 4);
@@ -104,10 +111,8 @@ class GeoAccess
         }
 
         // Callback denial
-        if (is_callable($rules['deny']['callback'] ?? null)) {
-            if (call_user_func($rules['deny']['callback'], $geo) === true) {
-                return ['reason' => 'callback', 'field' => 'callback'];
-            }
+        if (is_callable($rules['deny']['callback'] ?? null) && call_user_func($rules['deny']['callback'], $geo) === true) {
+            return ['reason' => 'callback', 'field' => 'callback'];
         }
 
         // Field-based denial
@@ -122,10 +127,8 @@ class GeoAccess
         }
 
         // Callback allow
-        if (is_callable($rules['allow']['callback'] ?? null)) {
-            if (call_user_func($rules['allow']['callback'], $geo) !== true) {
-                return ['reason' => 'callback_allow', 'field' => 'callback'];
-            }
+        if (is_callable($rules['allow']['callback'] ?? null) && call_user_func($rules['allow']['callback'], $geo) !== true) {
+            return ['reason' => 'callback_allow', 'field' => 'callback'];
         }
 
         // Field-based allow
@@ -165,24 +168,13 @@ class GeoAccess
         $messageKey = 'blocked';
         if ($blockInfo && isset($blockInfo['reason'])) {
             $reasonType = $blockInfo['reason'];
-            switch ($reasonType) {
-                case 'time':
-                    $messageKey = 'blocked_time';
-                    break;
-                case 'region':
-                    $messageKey = 'blocked_region';
-                    break;
-                case 'city':
-                    $messageKey = 'blocked_city';
-                    break;
-                case 'asn':
-                    $messageKey = 'blocked_asn';
-                    break;
-                case 'country':
-                default:
-                    $messageKey = 'blocked';
-                    break;
-            }
+            $messageKey = match ($reasonType) {
+                'time' => 'blocked_time',
+                'region' => 'blocked_region',
+                'city' => 'blocked_city',
+                'asn' => 'blocked_asn',
+                default => 'blocked',
+            };
         }
 
         $message = Lang::get('geo-restrict::messages.' . $messageKey);

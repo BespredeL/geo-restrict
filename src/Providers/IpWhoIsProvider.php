@@ -4,11 +4,30 @@ namespace Bespredel\GeoRestrict\Providers;
 
 class IpWhoIsProvider extends AbstractGeoProvider
 {
-    protected ?string $baseUrl        = 'https://ipwho.is/';
-    protected ?string $endpoint       = ':ip';
-    protected array   $requiredParams = ['ip'];
-    protected array   $optionalParams = ['api_key'];
-    protected array   $responseMap    = [
+    /**
+     * @var string|null
+     */
+    protected ?string $baseUrl = 'https://ipwho.is/';
+
+    /**
+     * @var string|null
+     */
+    protected ?string $endpoint = ':ip';
+
+    /**
+     * @var array|string[]
+     */
+    protected array $requiredParams = ['ip'];
+
+    /**
+     * @var array|string[]
+     */
+    protected array $optionalParams = ['api_key'];
+
+    /**
+     * @var array|string[]
+     */
+    protected array $responseMap = [
         'country' => 'country_code',
         'region'  => 'region',
         'city'    => 'city',
