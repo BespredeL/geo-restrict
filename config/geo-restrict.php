@@ -10,6 +10,8 @@ return [
     | A prioritized list of GeoIP services to detect location by IP address.
     | If a service is unavailable or fails, the next one will be used.
     |
+    | See https://github.com/bespredel/geo-restrict#provider-architecture
+    |
     */
     'services'       => [
         [
@@ -19,7 +21,7 @@ return [
         [
             'provider' => \Bespredel\GeoRestrict\Providers\IpApiComProvider::class,
             'options'  => [
-                'api_key' => 'your-api-key',
+                'api_key' => 'your-api-key', // optional
                 'lang'    => 'en', // optional
             ],
         ],
