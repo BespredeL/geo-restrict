@@ -1,11 +1,11 @@
 # GeoRestrict Middleware for Laravel
 
-[![Readme EN](https://img.shields.io/badge/README-EN-blue.svg)](https://github.com/bespredel/GeoRestrict/blob/master/README.md)
-[![Readme RU](https://img.shields.io/badge/README-RU-blue.svg)](https://github.com/bespredel/GeoRestrict/blob/master/README_RU.md)
-[![GitHub license](https://img.shields.io/badge/license-MIT-458a7b.svg)](https://github.com/bespredel/GeoRestrict/blob/master/LICENSE)
+[![Readme EN](https://img.shields.io/badge/README-EN-blue.svg)](https://github.com/BespredeL/geo-restrict/blob/master/README.md)
+[![Readme RU](https://img.shields.io/badge/README-RU-blue.svg)](https://github.com/BespredeL/geo-restrict/blob/master/README_RU.md)
+[![GitHub license](https://img.shields.io/badge/license-MIT-458a7b.svg)](https://github.com/BespredeL/geo-restrict/blob/master/LICENSE)
 [![Downloads](https://img.shields.io/packagist/dt/bespredel/geo-restrict.svg)](https://packagist.org/packages/bespredel/geo-restrict)
 
-[![Latest Version](https://img.shields.io/github/v/release/bespredel/GeoRestrict?logo=github)](https://github.com/bespredel/GeoRestrict/releases)
+[![Latest Version](https://img.shields.io/github/v/release/bespredel/GeoRestrict?logo=github)](https://github.com/BespredeL/geo-restrict/releases)
 [![Latest Version Packagist](https://img.shields.io/packagist/v/bespredel/geo-restrict.svg?logo=packagist&logoColor=white&color=F28D1A)](https://packagist.org/packages/bespredel/geo-restrict)
 [![PHP from Packagist](https://img.shields.io/packagist/php-v/bespredel/geo-restrict.svg?logo=php&logoColor=white&color=777BB4)](https://php.net)
 [![Laravel Version](https://img.shields.io/badge/laravel-%3E%3D10-FF2D20?logo=laravel)](https://laravel.com)
@@ -201,7 +201,7 @@ This makes it easy to add new providers and ensures all logic is unified and DRY
 1. Add the middleware to routes:
 
 ```php
-Route::middleware(['geo.restrict'])->group(function () {
+Route::middleware(['geo-restrict'])->group(function () {
     // ...
 });
 ```
@@ -209,7 +209,7 @@ Route::middleware(['geo.restrict'])->group(function () {
 2. Or apply directly:
 
 ```php
-Route::get('/secret', 'SecretController@index')->middleware('geo.restrict');
+Route::get('/secret', 'SecretController@index')->middleware('geo-restrict');
 ```
 
 ## Customization
@@ -243,4 +243,4 @@ No code changes are required — the language is detected automatically based on
 
 ## License
 
-MIT 
+This package is open-source software licensed under the MIT license.
