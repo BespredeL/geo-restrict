@@ -110,11 +110,13 @@ return [
     |
     | blocked_requests - Enable logging of blocked IP requests
     | allowed_requests - Enable logging of allowed IP requests
+    | channel          - Custom log channel (default: null = main log)
     |
     */
     'logging'        => [
         'blocked_requests' => true,
         'allowed_requests' => false,
+        'channel'          => null,
     ],
 
     /*

@@ -116,6 +116,7 @@ return [
     'logging' => [
         'blocked_requests' => true,
         'allowed_requests' => false,
+        'channel' => 'geo-restrict', // Use your custom channel name
     ],
 
     'block_response' => [
@@ -240,6 +241,49 @@ resources/lang/it/messages.php
 ```
 
 No code changes are required — the language is detected automatically based on the country code (e.g., IT, FR, DE, RU, EN, etc.).
+
+## Cache Management & Tag-based Cache Flush
+
+GeoRestrict uses Laravel's cache for geo-data and rate limiting. If your cache driver supports tags (Redis, Memcached), all geoip cache entries are tagged with `geoip`.
+
+- To flush all geoip cache entries at once, use the artisan command:
+
+```bash
+php artisan geo-restrict:clear-cache
+```
+
+You will see:
+
+    GeoIP cache flushed (if supported by cache driver).
+
+> **Note:** Tag-based cache flush is only available for Redis and Memcached drivers. For other drivers, cache will not be flushed in bulk.
+
+## Logging: Custom Channel Support
+
+GeoRestrict supports logging to a custom channel. By default, all logs (blocked/allowed requests, provider errors, rate limits) go to the main Laravel log. To use a separate channel, set the `logging.channel` parameter in your `config/geo-restrict.php`:
+
+```php
+'logging' => [
+    'blocked_requests' => true,
+    'allowed_requests' => false,
+    'channel' => 'geo-restrict', // Use your custom channel name
+],
+```
+
+Add a channel to your `config/logging.php`:
+
+```php
+'channels' => [
+    // ...
+    'geo-restrict' => [
+        'driver' => 'single',
+        'path' => storage_path('logs/geo-restrict.log'),
+        'level' => 'info',
+    ],
+],
+```
+
+If `channel` is not set or is `null`, logs will go to the default log channel.
 
 ## License
 

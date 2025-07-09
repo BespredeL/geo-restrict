@@ -2,9 +2,9 @@
 
 namespace Bespredel\GeoRestrict\Middleware;
 
-use Bespredel\GeoRestrict\Contracts\GeoServiceProviderInterface;
-use Bespredel\GeoRestrict\Services\GeoResolver;
 use Bespredel\GeoRestrict\Services\GeoAccess;
+use Bespredel\GeoRestrict\Services\GeoLoggerTrait;
+use Bespredel\GeoRestrict\Services\GeoResolver;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -16,6 +16,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class RestrictAccessByGeo
 {
+    use GeoLoggerTrait;
+
     protected GeoResolver $geoResolver;
     protected GeoAccess   $geoAccessService;
 
@@ -48,7 +50,7 @@ class RestrictAccessByGeo
         $ip = $request->ip();
 
         if (!$this->isValidIp($ip)) {
-            Log::warning("GeoRestrict: Invalid IP {$ip}");
+            $this->geoLogger()->warning("GeoRestrict: Invalid IP {$ip}");
             return $this->geoAccessService->denyResponse('invalid_ip');
         }
 
@@ -59,7 +61,7 @@ class RestrictAccessByGeo
         $geoData = $this->geoResolver->resolve($ip);
 
         if (!$geoData) {
-            Log::warning("GeoRestrict: Could not resolve geo data for {$ip}");
+            $this->geoLogger()->warning("GeoRestrict: Could not resolve geo data for {$ip}");
             return $this->geoAccessService->denyResponse('geo_fail');
         }
 
@@ -69,13 +71,13 @@ class RestrictAccessByGeo
         $rulesResult = $this->geoAccessService->passesRules($geoData);
         if ($rulesResult !== true) {
             if (config('geo-restrict.logging.blocked_requests', false)) {
-                Log::warning("GeoRestrict: Blocked {$ip} from {$country} accessing {$url}");
+                $this->geoLogger()->warning("GeoRestrict: Blocked {$ip} from {$country} accessing {$url}");
             }
             return $this->geoAccessService->denyResponse($geoData['country'] ?? null, $rulesResult);
         }
 
         if (config('geo-restrict.logging.allowed_requests', false)) {
-            Log::info("GeoRestrict: Allowed {$ip} from {$country} accessing {$url}");
+            $this->geoLogger()->info("GeoRestrict: Allowed {$ip} from {$country} accessing {$url}");
         }
 
         return $next($request);
