@@ -98,6 +98,9 @@ return [
                 'city'     => [],
                 'asn'      => [],
                 'callback' => null, // function($geo) { return ...; }
+                'time'     => [
+                    // ['from' => '22:00', 'to' => '06:00']
+                ],
             ],
             'deny'  => [
                 'country'  => [],
@@ -110,6 +113,21 @@ return [
                 ],
             ],
         ],
+    ],
+    
+    'routes' => [
+        'only'    => [], // ['admin/*', 'api/v1/*']
+        'except'  => [],
+        'methods' => [], // ['GET', 'POST']
+    ],
+    
+    'local_networks' => [
+        '127.0.0.1',
+        '::1',
+        '10.0.0.0/8',
+        '192.168.0.0/16',
+        '172.16.0.0/12',
+        // Добавьте другие по мере необходимости
     ],
 
     'logging' => [
@@ -124,13 +142,7 @@ return [
         'json'  => [
             'message' => 'Access denied: your region is restricted.',
         ],
-    ],
-    
-    'routes' => [
-        'only'    => [], // ['admin/*', 'api/v1/*']
-        'except'  => [],
-        'methods' => [], // ['GET', 'POST']
-    ],
+    ]
 ];
 ```
 
