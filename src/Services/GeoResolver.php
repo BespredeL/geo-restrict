@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Log;
 
 class GeoResolver
 {
+    use GeoLoggerTrait;
+
     protected GeoCache $cache;
 
     /**
@@ -40,7 +42,7 @@ class GeoResolver
             }
         }
         catch (GeoRateLimitException $e) {
-            Log::warning($e->getMessage());
+            $this->geoLogger()->warning($e->getMessage());
             return null;
         }
 
@@ -53,7 +55,7 @@ class GeoResolver
             $data = $this->resolveFromService($service, $ip);
             if ($data && !empty($data['country'])) {
                 if (!$this->isValidGeoData($data)) {
-                    Log::error('GeoResolver: invalid geo data structure', ['data' => $data, 'service' => $service]);
+                    $this->geoLogger()->error('GeoResolver: invalid geo data structure', ['data' => $data, 'service' => $service]);
                     continue;
                 }
                 $this->cache->put($ip, $data);
@@ -99,10 +101,10 @@ class GeoResolver
             }
         }
         catch (GeoProviderException $e) {
-            Log::error("GeoProvider error: " . $e->getMessage());
+            $this->geoLogger()->error("GeoProvider error: " . $e->getMessage());
         }
         catch (\Throwable $e) {
-            Log::debug("GeoRestrict: API {$serviceName} failed for {$ip}: {$e->getMessage()}");
+            $this->geoLogger()->debug("GeoRestrict: API {$serviceName} failed for {$ip}: {$e->getMessage()}");
         }
 
         return null;

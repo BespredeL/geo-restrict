@@ -7,9 +7,12 @@ use Bespredel\GeoRestrict\Exceptions\GeoProviderException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Bespredel\GeoRestrict\Services\GeoLoggerTrait;
 
 abstract class AbstractGeoProvider implements GeoServiceProviderInterface
 {
+    use GeoLoggerTrait;
+
     /**
      * Provider-specific options
      *
@@ -79,7 +82,7 @@ abstract class AbstractGeoProvider implements GeoServiceProviderInterface
         $url = preg_replace_callback('/:(\w+)/', function ($matches) use ($params) {
             $key = $matches[1];
             if (!isset($params[$key]) || $params[$key] === '' || $params[$key] === null) {
-                Log::error("GeoProvider: required parameter '{$key}' is missing for endpoint " . static::class);
+                $this->geoLogger()->error("GeoProvider: required parameter '{$key}' is missing for endpoint " . static::class);
                 throw new \InvalidArgumentException("Required parameter '{$key}' is missing for geo provider endpoint");
             }
             return urlencode($params[$key]);
@@ -149,11 +152,11 @@ abstract class AbstractGeoProvider implements GeoServiceProviderInterface
             $response = Http::timeout(5)->get($url);
         }
         catch (ConnectionException $e) {
-            Log::error("GeoProvider: connection error in " . static::class . " - " . $e->getMessage());
+            $this->geoLogger()->error("GeoProvider: connection error in " . static::class . " - " . $e->getMessage());
             throw $e;
         }
         catch (\Throwable $e) {
-            Log::error("GeoProvider: unexpected error in " . static::class . " - " . $e->getMessage());
+            $this->geoLogger()->error("GeoProvider: unexpected error in " . static::class . " - " . $e->getMessage());
             throw new GeoProviderException("Unexpected error occurred while requesting geo data.");
         }
 

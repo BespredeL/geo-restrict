@@ -85,29 +85,13 @@ class GeoAccess
         $rules = config('geo-restrict.access.rules', []);
 
         // Time-based denial
-        foreach ($rules['deny']['time'] ?? [] as $period) {
-            $from = $period['from'] ?? null;
-            $to = $period['to'] ?? null;
+        if (!empty($rules['deny']['time']) && $this->isNowInPeriods($rules['deny']['time'])) {
+            return ['reason' => 'time', 'field' => 'time'];
+        }
 
-            if ($from && $to) {
-                $now = now();
-                $today = $now->copy()->startOfDay();
-
-                $fromTime = $today->copy()->setTimeFromTimeString($from);
-                $toTime = $today->copy()->setTimeFromTimeString($to);
-
-                if ($fromTime > $toTime) {
-                    if ($now < $toTime) {
-                        $fromTime->subDay();
-                    } else {
-                        $toTime->addDay();
-                    }
-                }
-
-                if ($now->between($fromTime, $toTime)) {
-                    return ['reason' => 'time', 'field' => 'time'];
-                }
-            }
+        // Time-based allow
+        if (!empty($rules['allow']['time']) && !$this->isNowInPeriods($rules['allow']['time'])) {
+            return ['reason' => 'time', 'field' => 'time'];
         }
 
         // Callback denial
@@ -143,6 +127,43 @@ class GeoAccess
         }
 
         return true;
+    }
+
+    /**
+     * Checks whether the current time falls into at least one of the given periods
+     *
+     * @param array $periods
+     *
+     * @return bool
+     */
+    private function isNowInPeriods(array $periods): bool
+    {
+        $now = now();
+        $today = $now->copy()->startOfDay();
+
+        foreach ($periods as $period) {
+            $from = $period['from'] ?? null;
+            $to = $period['to'] ?? null;
+
+            if ($from && $to) {
+                $fromTime = $today->copy()->setTimeFromTimeString($from);
+                $toTime = $today->copy()->setTimeFromTimeString($to);
+
+                if ($fromTime > $toTime) {
+                    if ($now < $toTime) {
+                        $fromTime->subDay();
+                    } else {
+                        $toTime->addDay();
+                    }
+                }
+
+                if ($now->between($fromTime, $toTime)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

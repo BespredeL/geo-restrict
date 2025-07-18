@@ -89,6 +89,9 @@ return [
                 'city'     => [],
                 'asn'      => [],
                 'callback' => null,
+                'time'     => [
+                    // ['from' => '08:00', 'to' => '20:00']
+                ],
             ],
             'deny'  => [
                 'country'  => [],
@@ -100,38 +103,6 @@ return [
                     // ['from' => '22:00', 'to' => '06:00']
                 ],
             ],
-        ],
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Logging
-    |--------------------------------------------------------------------------
-    |
-    | blocked_requests - Enable logging of blocked IP requests
-    | allowed_requests - Enable logging of allowed IP requests
-    |
-    */
-    'logging'        => [
-        'blocked_requests' => true,
-        'allowed_requests' => false,
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Block Response
-    |--------------------------------------------------------------------------
-    |
-    | type  - Response type when access is denied: 'abort', 'json', or 'view'
-    | view  - Blade view to return if type = 'view'
-    | json  - Default message for JSON responses
-    |
-    */
-    'block_response' => [
-        'type' => 'abort',
-        'view' => 'errors.403',
-        'json' => [
-            'message' => null, // By default, taken from the language file
         ],
     ],
 
@@ -167,5 +138,39 @@ return [
         '192.168.0.0/16',
         '172.16.0.0/12',
         // Add more as needed
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Logging
+    |--------------------------------------------------------------------------
+    |
+    | blocked_requests - Enable logging of blocked IP requests
+    | allowed_requests - Enable logging of allowed IP requests
+    | channel          - Custom log channel (default: null = main log)
+    |
+    */
+    'logging'        => [
+        'blocked_requests' => true,
+        'allowed_requests' => false,
+        'channel'          => null,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Block Response
+    |--------------------------------------------------------------------------
+    |
+    | type  - Response type when access is denied: 'abort', 'json', or 'view'
+    | view  - Blade view to return if type = 'view'
+    | json  - Default message for JSON responses
+    |
+    */
+    'block_response' => [
+        'type' => 'abort',
+        'view' => 'errors.403',
+        'json' => [
+            'message' => null, // By default, taken from the language file
+        ],
     ],
 ];

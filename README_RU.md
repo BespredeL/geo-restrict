@@ -98,6 +98,9 @@ return [
                 'city'     => [],
                 'asn'      => [],
                 'callback' => null, // function($geo) { return ...; }
+                'time'     => [
+                    // ['from' => '22:00', 'to' => '06:00']
+                ],
             ],
             'deny'  => [
                 'country'  => [],
@@ -111,10 +114,26 @@ return [
             ],
         ],
     ],
+    
+    'routes' => [
+        'only'    => [], // ['admin/*', 'api/v1/*']
+        'except'  => [],
+        'methods' => [], // ['GET', 'POST']
+    ],
+    
+    'local_networks' => [
+        '127.0.0.1',
+        '::1',
+        '10.0.0.0/8',
+        '192.168.0.0/16',
+        '172.16.0.0/12',
+        // Добавьте другие по мере необходимости
+    ],
 
     'logging' => [
         'blocked_requests' => true,
         'allowed_requests' => false,
+        'channel' => 'geo-restrict', // Имя вашего канала
     ],
 
     'block_response' => [
@@ -123,13 +142,7 @@ return [
         'json'  => [
             'message' => 'Access denied: your region is restricted.',
         ],
-    ],
-    
-    'routes' => [
-        'only'    => [], // ['admin/*', 'api/v1/*']
-        'except'  => [],
-        'methods' => [], // ['GET', 'POST']
-    ],
+    ]
 ];
 ```
 
@@ -240,6 +253,50 @@ resources/lang/it/messages.php
 ```
 
 Изменения в коде не требуются — язык определяется автоматически по коду страны (например, IT, FR, DE, RU, EN и др.).
+
+
+## Управление кэшем и массовая очистка (tag-based flush)
+
+GeoRestrict использует кэш Laravel для хранения geo-данных и лимитов. Если ваш драйвер кэша поддерживает теги (Redis, Memcached), все записи geoip кэшируются с тегом `geoip`.
+
+- Для массовой очистки geoip-кэша используйте artisan-команду:
+
+```bash
+php artisan geo-restrict:clear-cache
+```
+
+Вы увидите:
+
+    GeoIP cache flushed (if supported by cache driver).
+
+> **Внимание:** Массовая очистка кэша по тегу работает только с драйверами Redis и Memcached. Для других драйверов кэш не будет очищен пакетно.
+
+## Логирование: поддержка отдельного канала
+
+GeoRestrict поддерживает логирование в отдельный канал. По умолчанию все логи (блокировки, разрешения, ошибки провайдеров, rate limit) пишутся в основной лог Laravel. Чтобы использовать отдельный канал, укажите параметр `logging.channel` в `config/geo-restrict.php`:
+
+```php
+'logging' => [
+    'blocked_requests' => true,
+    'allowed_requests' => false,
+    'channel' => 'geo-restrict', // Имя вашего канала
+],
+```
+
+Добавьте канал в `config/logging.php`:
+
+```php
+'channels' => [
+    // ...
+    'geo-restrict' => [
+        'driver' => 'single',
+        'path' => storage_path('logs/geo-restrict.log'),
+        'level' => 'info',
+    ],
+],
+```
+
+Если `channel` не указан или равен `null`, логи будут писаться в основной канал.
 
 ## Лицензия
 

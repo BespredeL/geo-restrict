@@ -4,6 +4,7 @@ namespace Bespredel\GeoRestrict;
 
 use Illuminate\Support\ServiceProvider;
 use Bespredel\GeoRestrict\Middleware\RestrictAccessByGeo;
+use Bespredel\GeoRestrict\Console\ClearGeoCache;
 
 class GeoRestrictServiceProvider extends ServiceProvider
 {
@@ -27,5 +28,19 @@ class GeoRestrictServiceProvider extends ServiceProvider
         $this->loadTranslationsFrom(__DIR__ . '/../resources/lang', 'geo-restrict');
 
         app('router')->aliasMiddleware('geo-restrict', RestrictAccessByGeo::class);
+    }
+
+    /**
+     * Register the application services.
+     *
+     * @return void
+     */
+    public function register()
+    {
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                ClearGeoCache::class,
+            ]);
+        }
     }
 }
