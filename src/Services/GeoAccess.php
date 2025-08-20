@@ -2,6 +2,7 @@
 
 namespace Bespredel\GeoRestrict\Services;
 
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Lang;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -16,7 +17,7 @@ class GeoAccess
      */
     public function isLocalIp(string $ip): bool
     {
-        $networks = config('geo-restrict.local_networks', []);
+        $networks = Config::get('geo-restrict.local_networks', []);
         foreach ($networks as $network) {
             if (strpos($network, '/') === false) {
                 if ($ip === $network) {
@@ -75,7 +76,7 @@ class GeoAccess
      */
     public function isWhitelistedIp(string $ip): bool
     {
-        return in_array($ip, config('geo-restrict.access.whitelisted_ips', []), true);
+        return in_array($ip, Config::get('geo-restrict.access.whitelisted_ips', []), true);
     }
 
     /**
@@ -87,7 +88,7 @@ class GeoAccess
      */
     public function passesRules(array $geo): array|bool
     {
-        $rules = config('geo-restrict.access.rules', []);
+        $rules = Config::get('geo-restrict.access.rules', []);
 
         // Time-based denial
         if (!empty($rules['deny']['time']) && $this->isNowInPeriods($rules['deny']['time'])) {
@@ -181,8 +182,8 @@ class GeoAccess
      */
     public function denyResponse(?string $reason = null, ?array $blockInfo = null): Response
     {
-        $type = config('geo-restrict.block_response.type', 'abort');
-        $json = config('geo-restrict.block_response.json', []);
+        $type = Config::get('geo-restrict.block_response.type', 'abort');
+        $json = Config::get('geo-restrict.block_response.json', []);
         $locale = is_string($reason) && strlen($reason) === 2 ? strtolower($reason) : null;
         $originalLocale = app()->getLocale();
 
@@ -216,7 +217,7 @@ class GeoAccess
         return match ($type) {
             'json' => response()->json($json, 403),
             'view' => response()->view(
-                config('geo-restrict.block_response.view', 'errors.403'),
+                Config::get('geo-restrict.block_response.view', 'errors.403'),
                 ['message' => $message, 'country' => $reason],
                 403
             ),

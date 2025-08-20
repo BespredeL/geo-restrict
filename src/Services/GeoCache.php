@@ -7,6 +7,7 @@ namespace Bespredel\GeoRestrict\Services;
 use Bespredel\GeoRestrict\Exceptions\GeoRateLimitException;
 use Illuminate\Cache\TaggableStore;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 
 class GeoCache
@@ -42,7 +43,7 @@ class GeoCache
     {
         $rateKey = "geoip:rate:{$ip}";
         $count = $this->cache()->get($rateKey, 0);
-        $rateLimit = config('geo-restrict.geo_services.rate_limit', 30);
+        $rateLimit = Config::get('geo-restrict.geo_services.rate_limit', 30);
 
         if ($count >= $rateLimit) {
             $this->geoLogger()->warning("GeoRestrict: Rate limit exceeded for {$ip}");
@@ -64,7 +65,7 @@ class GeoCache
     public function get(string $ip): ?array
     {
         $cacheKey = "geoip:{$ip}";
-        $cacheTtl = config('geo-restrict.geo_services.cache_ttl', 1440);
+        $cacheTtl = Config::get('geo-restrict.geo_services.cache_ttl', 1440);
         if ($cacheTtl > 0 && $this->cache()->has($cacheKey)) {
             return $this->cache()->get($cacheKey);
         }
@@ -83,7 +84,7 @@ class GeoCache
     public function put(string $ip, array $data): void
     {
         $cacheKey = "geoip:{$ip}";
-        $cacheTtl = config('geo-restrict.geo_services.cache_ttl', 1440);
+        $cacheTtl = Config::get('geo-restrict.geo_services.cache_ttl', 1440);
         if ($cacheTtl > 0) {
             $this->cache()->put($cacheKey, $data, now()->addMinutes($cacheTtl));
         }
