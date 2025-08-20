@@ -33,7 +33,12 @@ class GeoAccess
     }
 
     /**
-     * Проверяет, принадлежит ли IP диапазону CIDR
+     * Check: IP in CIDR?
+     *
+     * @param string $ip
+     * @param string $cidr
+     *
+     * @return bool
      */
     protected function ipInCidr(string $ip, string $cidr): bool
     {
