@@ -41,6 +41,9 @@ return [
         // [
         //     'name' => 'custom',
         //     'url'  => 'https://example.com/:ip',
+        //     'headers' => [
+        //         'Content-Type' => 'application/json',
+        //     ],
         //     'map'  => [
         //         'country' => 'country_code',
         //         'region'  => 'region',

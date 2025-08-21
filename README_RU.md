@@ -72,6 +72,9 @@ return [
         [
              'name' => 'ipapi.co',
              'url'  => 'https://ipapi.co/:ip/json/',
+             'headers' => [
+                 'Accept' => 'application/json',
+             ],
              'map'  => [
                  'country' => 'country_code',
                 'region'  => 'region_code',
