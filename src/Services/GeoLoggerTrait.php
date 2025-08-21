@@ -2,6 +2,7 @@
 
 namespace Bespredel\GeoRestrict\Services;
 
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 use Psr\Log\LoggerInterface;
 
@@ -14,7 +15,7 @@ trait GeoLoggerTrait
      */
     protected function geoLogger(): LoggerInterface
     {
-        $channel = config('geo-restrict.logging.channel');
+        $channel = Config::get('geo-restrict.logging.channel');
         return $channel ? Log::channel($channel) : Log::getFacadeRoot();
     }
 } 

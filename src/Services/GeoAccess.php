@@ -2,30 +2,33 @@
 
 namespace Bespredel\GeoRestrict\Services;
 
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Lang;
 use Symfony\Component\HttpFoundation\Response;
 
 class GeoAccess
 {
     /**
-     * Check: IP local?
+     * Check: IP/network in excluded list?
      *
      * @param string $ip
      *
      * @return bool
      */
-    public function isLocalIp(string $ip): bool
+    public function isExcludedIp(string $ip): bool
     {
-        $networks = config('geo-restrict.local_networks', []);
+        $networks = Config::get('geo-restrict.excluded_networks', []);
+
         foreach ($networks as $network) {
-            if (strpos($network, '/') === false) {
-                if ($ip === $network) {
-                    return true;
-                }
-            } else {
-                if ($this->ipInCidr($ip, $network)) {
-                    return true;
-                }
+            // Exact IP
+            if ($ip === $network) {
+                return true;
+            }
+
+            // Subset CIDR
+            if (str_contains($network, '/') && $this->ipInCidr($ip, $network)) {
+                return true;
             }
         }
 
@@ -33,7 +36,12 @@ class GeoAccess
     }
 
     /**
-     * Проверяет, принадлежит ли IP диапазону CIDR
+     * Check: IP in CIDR?
+     *
+     * @param string $ip
+     * @param string $cidr
+     *
+     * @return bool
      */
     protected function ipInCidr(string $ip, string $cidr): bool
     {
@@ -62,19 +70,7 @@ class GeoAccess
     }
 
     /**
-     * Check: IP in Whitelist?
-     *
-     * @param string $ip
-     *
-     * @return bool
-     */
-    public function isWhitelistedIp(string $ip): bool
-    {
-        return in_array($ip, config('geo-restrict.access.whitelisted_ips', []), true);
-    }
-
-    /**
-     * Checking: GEO-data pass access rules?
+     * Check: GEO-data pass access rules?
      *
      * @param array $geo
      *
@@ -82,7 +78,7 @@ class GeoAccess
      */
     public function passesRules(array $geo): array|bool
     {
-        $rules = config('geo-restrict.access.rules', []);
+        $rules = Config::get('geo-restrict.access.rules', []);
 
         // Time-based denial
         if (!empty($rules['deny']['time']) && $this->isNowInPeriods($rules['deny']['time'])) {
@@ -130,7 +126,7 @@ class GeoAccess
     }
 
     /**
-     * Checks whether the current time falls into at least one of the given periods
+     * Check: Whether the current time falls into at least one of the given periods
      *
      * @param array $periods
      *
@@ -138,7 +134,7 @@ class GeoAccess
      */
     private function isNowInPeriods(array $periods): bool
     {
-        $now = now();
+        $now = Carbon::now();
         $today = $now->copy()->startOfDay();
 
         foreach ($periods as $period) {
@@ -176,8 +172,8 @@ class GeoAccess
      */
     public function denyResponse(?string $reason = null, ?array $blockInfo = null): Response
     {
-        $type = config('geo-restrict.block_response.type', 'abort');
-        $json = config('geo-restrict.block_response.json', []);
+        $type = Config::get('geo-restrict.block_response.type', 'abort');
+        $json = Config::get('geo-restrict.block_response.json', []);
         $locale = is_string($reason) && strlen($reason) === 2 ? strtolower($reason) : null;
         $originalLocale = app()->getLocale();
 
@@ -211,7 +207,7 @@ class GeoAccess
         return match ($type) {
             'json' => response()->json($json, 403),
             'view' => response()->view(
-                config('geo-restrict.block_response.view', 'errors.403'),
+                Config::get('geo-restrict.block_response.view', 'errors.403'),
                 ['message' => $message, 'country' => $reason],
                 403
             ),

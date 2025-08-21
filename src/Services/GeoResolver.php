@@ -6,6 +6,7 @@ use Bespredel\GeoRestrict\Contracts\GeoServiceProviderInterface;
 use Bespredel\GeoRestrict\Exceptions\GeoProviderException;
 use Bespredel\GeoRestrict\Exceptions\GeoRateLimitException;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -51,7 +52,7 @@ class GeoResolver
             return $cached;
         }
 
-        foreach (config('geo-restrict.services', []) as $service) {
+        foreach (Config::get('geo-restrict.services', []) as $service) {
             $data = $this->resolveFromService($service, $ip);
             if ($data && !empty($data['country'])) {
                 if (!$this->isValidGeoData($data)) {
