@@ -28,6 +28,10 @@ class GeoRestrictServiceProvider extends ServiceProvider
         $this->loadTranslationsFrom(__DIR__ . '/../resources/lang', 'geo-restrict');
 
         app('router')->aliasMiddleware('geo-restrict', RestrictAccessByGeo::class);
+
+        $this->commands([
+            ClearGeoCache::class,
+        ]);
     }
 
     /**
@@ -37,10 +41,6 @@ class GeoRestrictServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        if ($this->app->runningInConsole()) {
-            $this->commands([
-                ClearGeoCache::class,
-            ]);
-        }
+
     }
 }
