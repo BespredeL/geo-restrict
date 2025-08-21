@@ -20,7 +20,7 @@ class ClearGeoCache extends Command
      *
      * @var string
      */
-    protected $description = 'Flush all GeoIP cache (by tag if supported by cache driver).';
+    protected $description = 'Flush all GeoIP cache.';
 
     /**
      * @var GeoCache
@@ -48,9 +48,9 @@ class ClearGeoCache extends Command
         $this->geoCache->clearAllGeoCache();
 
         if (method_exists($this, 'components')) {
-            $this->components->info('GeoIP cache flushed (if supported by cache driver).');
+            $this->components->info('GeoIP cache flushed.');
         } else {
-            $this->info('GeoIP cache flushed (if supported by cache driver).');
+            $this->info('GeoIP cache flushed.');
         }
 
         return SymfonyCommand::SUCCESS;

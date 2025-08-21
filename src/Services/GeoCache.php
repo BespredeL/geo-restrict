@@ -6,6 +6,7 @@ namespace Bespredel\GeoRestrict\Services;
 
 use Bespredel\GeoRestrict\Exceptions\GeoRateLimitException;
 use Illuminate\Cache\TaggableStore;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
@@ -50,7 +51,7 @@ class GeoCache
             throw new GeoRateLimitException("Rate limit exceeded for {$ip}");
         }
 
-        $this->cache()->put($rateKey, $count + 1, now()->addMinute());
+        $this->cache()->put($rateKey, $count + 1, Carbon::now()->addMinute());
 
         return false;
     }
@@ -86,7 +87,7 @@ class GeoCache
         $cacheKey = "geoip:{$ip}";
         $cacheTtl = Config::get('geo-restrict.geo_services.cache_ttl', 1440);
         if ($cacheTtl > 0) {
-            $this->cache()->put($cacheKey, $data, now()->addMinutes($cacheTtl));
+            $this->cache()->put($cacheKey, $data, Carbon::now()->addMinutes($cacheTtl));
         }
     }
 
