@@ -149,7 +149,14 @@ abstract class AbstractGeoProvider implements GeoServiceProviderInterface
         }
 
         try {
-            $response = Http::timeout(5)->get($url);
+            $request = Http::timeout(5);
+
+            $headers = $this->getHeaders();
+            if (!empty($headers)) {
+                $request = $request->withHeaders($headers);
+            }
+
+            $response = $request->get($url);
         }
         catch (ConnectionException $e) {
             $this->geoLogger()->error("GeoProvider: connection error in " . static::class . " - " . $e->getMessage());
@@ -193,6 +200,18 @@ abstract class AbstractGeoProvider implements GeoServiceProviderInterface
         }
 
         return $params;
+    }
+
+    /**
+     * Get request headers.
+     *
+     * By default, reads from options['headers'], but can be overridden in child classes.
+     *
+     * @return array
+     */
+    protected function getHeaders(): array
+    {
+        return $this->options['headers'] ?? [];
     }
 
     /**
