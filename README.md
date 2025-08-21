@@ -91,7 +91,6 @@ return [
     ],
 
     'access' => [
-        'whitelisted_ips' => ['127.0.0.1'],
         'rules' => [
             'allow' => [
                 'country'  => ['RU'],
@@ -122,7 +121,7 @@ return [
         'methods' => [], // ['GET', 'POST']
     ],
     
-    'local_networks' => [
+    'excluded_networks' => [
         '127.0.0.1',
         '::1',
         '10.0.0.0/8',
@@ -152,11 +151,11 @@ return [
 - **services** — list of geo-services used to resolve location by IP. Each provider supports only its documented parameters (see table below).
 - **geo_services.cache_ttl** — cache lifetime in minutes (0 disables caching).
 - **geo_services.rate_limit** — max requests per minute per IP to geo services.
-- **access.whitelisted_ips** — IPs that are always allowed (e.g., localhost).
 - **access.rules.allow/deny** — allow/deny rules by country, region, ASN, callbacks and time periods.
 - **logging** — enable logging of blocked or allowed requests.
 - **block_response.type** — response type: 'abort', 'json', or 'view'.
 - **routes.only/except/methods** — route and method matching.
+- **excluded_networks** — list of IP networks to exclude from geo restriction.
 
 #### Supported Providers and Parameters
 
@@ -266,7 +265,7 @@ php artisan geo-restrict:clear-cache
 
 You will see:
 
-    GeoIP cache flushed (if supported by cache driver).
+    GeoIP cache flushed.
 
 > **Note:** Tag-based cache flush is only available for Redis and Memcached drivers. For other drivers, cache will not be flushed in bulk.
 

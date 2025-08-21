@@ -90,7 +90,6 @@ return [
     ],
 
     'access' => [
-        'whitelisted_ips' => ['127.0.0.1'],
         'rules' => [
             'allow' => [
                 'country'  => ['RU'],
@@ -121,7 +120,7 @@ return [
         'methods' => [], // ['GET', 'POST']
     ],
     
-    'local_networks' => [
+    'excluded_networks' => [
         '127.0.0.1',
         '::1',
         '10.0.0.0/8',
@@ -152,11 +151,11 @@ return [
   таблицу ниже).
 - **geo_services.cache_ttl** — время жизни кэша (в минутах), 0 — кэш отключён.
 - **geo_services.rate_limit** — ограничение количества запросов к geo-сервисам с одного IP в минуту.
-- **access.whitelisted_ips** — IP-адреса, которым всегда разрешён доступ (по умолчанию localhost).
 - **access.rules.allow/deny** — правила разрешения/запрета по стране, региону, ASN, callback-функции и времени.
 - **logging** — параметры логирования (блокировки, разрешённые запросы).
 - **block_response.type** — тип ответа при блокировке: 'abort' (стандартный abort), 'json' (JSON-ответ), 'view' (рендер view).
 - **routes.only/except/methods** — ограничения по маршрутам и HTTP-методам.
+- **excluded_networks** — список IP-сетей для исключения из ограничений.
 
 #### Поддерживаемые провайдеры и параметры
 
@@ -267,7 +266,7 @@ php artisan geo-restrict:clear-cache
 
 Вы увидите:
 
-    GeoIP cache flushed (if supported by cache driver).
+    GeoIP cache flushed.
 
 > **Внимание:** Массовая очистка кэша по тегу работает только с драйверами Redis и Memcached. Для других драйверов кэш не будет очищен пакетно.
 
