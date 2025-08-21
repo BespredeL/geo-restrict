@@ -54,7 +54,7 @@ class RestrictAccessByGeo
             return $this->geoAccessService->denyResponse('invalid_ip');
         }
 
-        if ($this->geoAccessService->isLocalIp($ip) || $this->geoAccessService->isWhitelistedIp($ip)) {
+        if ($this->geoAccessService->isExcludedIp($ip)) {
             return $next($request);
         }
 

@@ -2,6 +2,7 @@
 
 namespace Bespredel\GeoRestrict\Services;
 
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Lang;
 use Symfony\Component\HttpFoundation\Response;
@@ -9,24 +10,25 @@ use Symfony\Component\HttpFoundation\Response;
 class GeoAccess
 {
     /**
-     * Check: IP local?
+     * Check: IP/network in excluded list?
      *
      * @param string $ip
      *
      * @return bool
      */
-    public function isLocalIp(string $ip): bool
+    public function isExcludedIp(string $ip): bool
     {
-        $networks = Config::get('geo-restrict.local_networks', []);
+        $networks = Config::get('geo-restrict.excluded_networks', []);
+
         foreach ($networks as $network) {
-            if (strpos($network, '/') === false) {
-                if ($ip === $network) {
-                    return true;
-                }
-            } else {
-                if ($this->ipInCidr($ip, $network)) {
-                    return true;
-                }
+            // Exact IP
+            if ($ip === $network) {
+                return true;
+            }
+
+            // Subset CIDR
+            if (str_contains($network, '/') && $this->ipInCidr($ip, $network)) {
+                return true;
             }
         }
 
@@ -68,19 +70,7 @@ class GeoAccess
     }
 
     /**
-     * Check: IP in Whitelist?
-     *
-     * @param string $ip
-     *
-     * @return bool
-     */
-    public function isWhitelistedIp(string $ip): bool
-    {
-        return in_array($ip, Config::get('geo-restrict.access.whitelisted_ips', []), true);
-    }
-
-    /**
-     * Checking: GEO-data pass access rules?
+     * Check: GEO-data pass access rules?
      *
      * @param array $geo
      *
@@ -136,7 +126,7 @@ class GeoAccess
     }
 
     /**
-     * Checks whether the current time falls into at least one of the given periods
+     * Check: Whether the current time falls into at least one of the given periods
      *
      * @param array $periods
      *
@@ -144,7 +134,7 @@ class GeoAccess
      */
     private function isNowInPeriods(array $periods): bool
     {
-        $now = now();
+        $now = Carbon::now();
         $today = $now->copy()->startOfDay();
 
         foreach ($periods as $period) {

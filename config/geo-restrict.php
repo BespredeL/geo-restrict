@@ -13,7 +13,7 @@ return [
     | See https://github.com/bespredel/geo-restrict#provider-architecture
     |
     */
-    'services'       => [
+    'services'          => [
         [
             'provider' => \Bespredel\GeoRestrict\Providers\IpWhoIsProvider::class,
             'options'  => [],
@@ -60,18 +60,15 @@ return [
     | rate_limit  - Max number of requests per IP per minute
     |
     */
-    'geo_services'   => [
+    'geo_services'      => [
         'cache_ttl'  => 1440,
         'rate_limit' => 30,
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Access: Whitelist & Rule-Based Restrictions
+    | Access: Rule-Based Restrictions
     |--------------------------------------------------------------------------
-    |
-    | local_ips       - Always allowed local IP addresses
-    | whitelisted_ips - Always allowed IP addresses (local IPs are allowed by default)
     |
     | Rules:
     | - 'allow' and 'deny' sections define access restrictions by geo fields.
@@ -80,9 +77,8 @@ return [
     | - time - Time-based restrictions (array of periods): ['from' => '22:00', 'to' => '06:00']
     |
     */
-    'access'         => [
-        'whitelisted_ips' => [],
-        'rules'           => [
+    'access'            => [
+        'rules' => [
             'allow' => [
                 'country'  => ['RU'],
                 'region'   => [],
@@ -116,7 +112,7 @@ return [
     | methods - Apply restriction only to specified HTTP methods (e.g., ['GET', 'POST'])
     |
     */
-    'routes'         => [
+    'routes'            => [
         'only'    => [],
         'except'  => [],
         'methods' => [],
@@ -124,14 +120,14 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Local Networks (for isLocalIp)
+    | Excluded Networks / IPs
     |--------------------------------------------------------------------------
     |
-    | List of IPs or CIDR blocks considered as local/private.
-    | Used by isLocalIp().
+    | List of IP addresses or CIDR subnet, which should be excluded
+    | From the verification of geo-restrictions. It works like Whitelist.
     |
     */
-    'local_networks' => [
+    'excluded_networks' => [
         '127.0.0.1',
         '::1',
         '10.0.0.0/8',
@@ -150,7 +146,7 @@ return [
     | channel          - Custom log channel (default: null = main log)
     |
     */
-    'logging'        => [
+    'logging'           => [
         'blocked_requests' => true,
         'allowed_requests' => false,
         'channel'          => null,
@@ -166,7 +162,7 @@ return [
     | json  - Default message for JSON responses
     |
     */
-    'block_response' => [
+    'block_response'    => [
         'type' => 'abort',
         'view' => 'errors.403',
         'json' => [
