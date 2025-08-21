@@ -146,7 +146,16 @@ class GeoResolver
     private function getGeoDataFromArrayService(array $service, string $ip): ?array
     {
         $url = str_replace(':ip', $ip, $service['url']);
-        $response = Http::timeout(5)->get($url);
+        $headers = $service['headers'] ?? [];
+
+        $request = Http::timeout(5);
+
+        if (!empty($headers)) {
+            $request = $request->withHeaders($headers);
+        }
+
+        $response = $request->get($url);
+
         if (!$response->successful()) {
             return null;
         }
