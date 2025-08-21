@@ -20,6 +20,14 @@ class GeoAccess
     {
         $networks = Config::get('geo-restrict.excluded_networks', []);
 
+        // If the new key is empty, let's try old keys for reverse compatibility
+        if (empty($networks)) {
+            $networks = array_merge(
+                Config::get('geo-restrict.local_networks', []),
+                Config::get('geo-restrict.access.whitelisted_ips', [])
+            );
+        }
+
         foreach ($networks as $network) {
             // Exact IP
             if ($ip === $network) {
