@@ -94,17 +94,16 @@ class RestrictAccessByGeo
     {
         $only = Config::get('geo-restrict.routes.only', []);
         $except = Config::get('geo-restrict.routes.except', []);
-        $current = $request->route()?->getName() ?? $request->path();
 
         foreach ($except as $pattern) {
-            if (fnmatch($pattern, $current)) {
+            if ($request->routeIs($pattern) || $request->is($pattern)) {
                 return false;
             }
         }
 
         if (!empty($only)) {
             foreach ($only as $pattern) {
-                if (fnmatch($pattern, $current)) {
+                if ($request->routeIs($pattern) || $request->is($pattern)) {
                     return true;
                 }
             }
