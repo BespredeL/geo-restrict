@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Bespredel\GeoRestrict\Middleware;
 
 use Bespredel\GeoRestrict\Services\GeoAccess;
@@ -7,11 +9,7 @@ use Bespredel\GeoRestrict\Services\GeoLoggerTrait;
 use Bespredel\GeoRestrict\Services\GeoResolver;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Lang;
-use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class RestrictAccessByGeo

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Bespredel\GeoRestrict;
 
 use Illuminate\Support\ServiceProvider;
@@ -39,8 +41,7 @@ class GeoRestrictServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function register()
+    public function register(): void
     {
-
     }
 }

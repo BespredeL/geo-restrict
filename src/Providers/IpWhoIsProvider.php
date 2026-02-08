@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Bespredel\GeoRestrict\Providers;
 
 class IpWhoIsProvider extends AbstractGeoProvider

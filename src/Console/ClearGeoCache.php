@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Bespredel\GeoRestrict\Console;
 
 use Bespredel\GeoRestrict\Services\GeoCache;

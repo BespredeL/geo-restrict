@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Bespredel\GeoRestrict\Services;
 
 use Illuminate\Support\Carbon;
@@ -121,7 +123,7 @@ class GeoAccess
 
         // Field-based allow
         foreach ($rules['allow'] ?? [] as $field => $allowed) {
-            if ($field === 'callback') {
+            if (in_array($field, ['callback', 'time'], true)) {
                 continue;
             }
 

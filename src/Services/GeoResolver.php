@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Bespredel\GeoRestrict\Services;
 
 use Bespredel\GeoRestrict\Contracts\GeoServiceProviderInterface;
@@ -52,13 +54,12 @@ class GeoResolver
             return $cached;
         }
 
+        $standardKeys = ['country', 'region', 'city', 'asn', 'isp'];
+
         foreach (Config::get('geo-restrict.services', []) as $service) {
             $data = $this->resolveFromService($service, $ip);
-            if ($data && !empty($data['country'])) {
-                if (!$this->isValidGeoData($data)) {
-                    $this->geoLogger()->error('GeoResolver: invalid geo data structure', ['data' => $data, 'service' => $service]);
-                    continue;
-                }
+            if ($data && $this->isValidGeoData($data)) {
+                $data = $this->normalizeGeoData($data, $standardKeys);
                 $this->cache->put($ip, $data);
                 return $data;
             }
@@ -171,7 +172,7 @@ class GeoResolver
     }
 
     /**
-     * Check that geo data contains all required fields.
+     * Check that geo data has at least country (required for access rules).
      *
      * @param array $data
      *
@@ -179,13 +180,24 @@ class GeoResolver
      */
     private function isValidGeoData(array $data): bool
     {
-        $required = ['country', 'region', 'city', 'asn', 'isp'];
-        foreach ($required as $key) {
-            if (!array_key_exists($key, $data)) {
-                return false;
-            }
+        return isset($data['country']) && $data['country'] !== '' && $data['country'] !== null;
+    }
+
+    /**
+     * Normalize geo array to standard keys; missing keys become null.
+     *
+     * @param array $data
+     * @param array $keys
+     *
+     * @return array
+     */
+    private function normalizeGeoData(array $data, array $keys): array
+    {
+        $result = [];
+        foreach ($keys as $key) {
+            $result[$key] = array_key_exists($key, $data) ? $data[$key] : null;
         }
 
-        return true;
+        return $result;
     }
 } 
