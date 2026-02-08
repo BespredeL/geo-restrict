@@ -101,7 +101,9 @@ class GeoAccess
         }
 
         // Callback denial
-        if (is_callable($rules['deny']['callback'] ?? null) && call_user_func($rules['deny']['callback'], $geo) === true) {
+        if (is_callable($rules['deny']['callback'] ?? null)
+            && call_user_func($rules['deny']['callback'], $geo) === true
+        ) {
             return ['reason' => 'callback', 'field' => 'callback'];
         }
 
@@ -117,7 +119,9 @@ class GeoAccess
         }
 
         // Callback allow
-        if (is_callable($rules['allow']['callback'] ?? null) && call_user_func($rules['allow']['callback'], $geo) !== true) {
+        if (is_callable($rules['allow']['callback'] ?? null)
+            && call_user_func($rules['allow']['callback'], $geo) !== true
+        ) {
             return ['reason' => 'callback_allow', 'field' => 'callback'];
         }
 

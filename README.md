@@ -151,14 +151,14 @@ return [
 
 ### Key parameters explained
 
-- **services** — list of geo-services used to resolve location by IP. Each provider supports only its documented parameters (see table below).
-- **geo_services.cache_ttl** — cache lifetime in minutes (0 disables caching).
-- **geo_services.rate_limit** — max requests per minute per IP to geo services.
-- **access.rules.allow/deny** — allow/deny rules by country, region, ASN, callbacks and time periods.
-- **logging** — enable logging of blocked or allowed requests.
-- **block_response.type** — response type: 'abort', 'json', or 'view'.
-- **routes.only/except/methods** — route and method matching.
-- **excluded_networks** — list of IP networks to exclude from geo restriction.
+- **services** - list of geo-services used to resolve location by IP. Each provider supports only its documented parameters (see table below).
+- **geo_services.cache_ttl** - cache lifetime in minutes (0 disables caching).
+- **geo_services.rate_limit** - max requests per minute per IP to geo services.
+- **access.rules.allow/deny** - allow/deny rules by country, region, ASN, callbacks and time periods.
+- **logging** - enable logging of blocked or allowed requests.
+- **block_response.type** - response type: 'abort', 'json', or 'view'.
+- **routes.only/except/methods** - route and method matching.
+- **excluded_networks** - list of IP networks to exclude from geo restriction.
 
 #### Supported Providers and Parameters
 
@@ -254,7 +254,7 @@ php artisan vendor:publish --provider="Bespredel\GeoRestrict\GeoRestrictServiceP
 resources/lang/it/messages.php
 ```
 
-No code changes are required — the language is detected automatically based on the country code (e.g., IT, FR, DE, RU, EN, etc.).
+No code changes are required - the language is detected automatically based on the country code (e.g., IT, FR, DE, RU, EN, etc.).
 
 ## Cache Management & Tag-based Cache Flush
 

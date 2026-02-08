@@ -180,7 +180,7 @@ class GeoResolver
      */
     private function isValidGeoData(array $data): bool
     {
-        return isset($data['country']) && $data['country'] !== '' && $data['country'] !== null;
+        return isset($data['country']) && $data['country'] !== '';
     }
 
     /**
@@ -195,7 +195,7 @@ class GeoResolver
     {
         $result = [];
         foreach ($keys as $key) {
-            $result[$key] = array_key_exists($key, $data) ? $data[$key] : null;
+            $result[$key] = $data[$key] ?? null;
         }
 
         return $result;
