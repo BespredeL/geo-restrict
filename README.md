@@ -1,4 +1,4 @@
-# GeoRestrict Middleware for Laravel
+# GeoRestrict - Advanced GeoIP Middleware for Laravel
 
 [![Readme EN](https://img.shields.io/badge/README-EN-blue.svg)](https://github.com/BespredeL/geo-restrict/blob/master/README.md)
 [![Readme RU](https://img.shields.io/badge/README-RU-blue.svg)](https://github.com/BespredeL/geo-restrict/blob/master/README_RU.md)
@@ -10,31 +10,38 @@
 [![PHP from Packagist](https://img.shields.io/packagist/php-v/bespredel/geo-restrict.svg?logo=php&logoColor=white&color=777BB4)](https://php.net)
 [![Laravel Version](https://img.shields.io/badge/laravel-%3E%3D10-FF2D20?logo=laravel)](https://laravel.com)
 
-GeoRestrict is a Laravel middleware that restricts access to your application based on the user's IP geolocation (country, region, ASN, city, ISP,
-etc).
+🚀 Production-ready GeoIP access control for Laravel applications
 
-## Features
+GeoRestrict is a powerful and flexible Laravel middleware that allows you to control access to your application based on user geolocation.
 
-- Country, region, ASN, city, ISP filtering by IP
-- Multiple geo-services support (priority by order)
-- Geo response caching (can be disabled)
-- Rate limiting for geo service requests
-- Flexible allow/deny rules, including callbacks and time-based restrictions
-- IP whitelist (local addresses are always allowed)
-- Route targeting via patterns and HTTP methods
-- Localized error messages (multi-language, easy to extend)
-- Different responses per country/rule
-- Logging for blocked and allowed requests
+It supports filtering by country, region, city, ASN, ISP, and provides advanced features like multi-provider fallback, caching, rate limiting, and flexible rule configuration.
 
-## Installation
+---
 
-1. Install the package:
+## ✨ Features
+
+- 🌍 Geo-based filtering (country, region, city, ASN, ISP)
+- 🔀 Multiple GeoIP providers with fallback support
+- ⚡ Built-in caching for performance optimization
+- 🚦 Rate limiting for external GeoIP services
+- 🧠 Flexible allow/deny rules with callbacks
+- ⏱ Time-based access restrictions
+- 📍 Route-level targeting (patterns + HTTP methods)
+- 🛡 IP whitelist support
+- 🌐 Multi-language error responses
+- 📊 Logging for allowed and blocked requests
+
+---
+
+## 📦 Installation
+
+1. Install the package via Composer::
 
 ```bash
 composer require bespredel/geo-restrict
 ```
 
-2. Publish the configuration:
+2. Publish the config file:
 
 ```bash
 php artisan vendor:publish --provider="Bespredel\GeoRestrict\GeoRestrictServiceProvider" --tag=geo-restrict-config
@@ -46,7 +53,13 @@ php artisan vendor:publish --provider="Bespredel\GeoRestrict\GeoRestrictServiceP
 php artisan vendor:publish --provider="Bespredel\GeoRestrict\GeoRestrictServiceProvider" --tag=geo-restrict-lang
 ```
 
-## Example config `config/geo-restrict.php`
+---
+
+## ⚙️ Configuration
+
+The configuration file allows you to fully customize how GeoRestrict behaves.
+
+**Example:**
 
 ```php
 return [
@@ -149,6 +162,8 @@ return [
 ];
 ```
 
+---
+
 ### Key parameters explained
 
 - **services** - list of geo-services used to resolve location by IP. Each provider supports only its documented parameters (see table below).
@@ -159,6 +174,8 @@ return [
 - **block_response.type** - response type: 'abort', 'json', or 'view'.
 - **routes.only/except/methods** - route and method matching.
 - **excluded_networks** - list of IP networks to exclude from geo restriction.
+
+---
 
 #### Supported Providers and Parameters
 
@@ -211,7 +228,9 @@ class ExampleProvider extends AbstractGeoProvider {
 
 This makes it easy to add new providers and ensures all logic is unified and DRY.
 
-## Usage
+---
+
+## 🚀 Usage
 
 1. Add the middleware to routes:
 
@@ -227,14 +246,18 @@ Route::middleware(['geo-restrict'])->group(function () {
 Route::get('/secret', 'SecretController@index')->middleware('geo-restrict');
 ```
 
-## Customization
+---
+
+## 🔧 Customization
 
 - Add your geo-services to the `services` array; order defines priority.
 - Use allow/deny rules for flexible filtering.
 - For complex cases, use callback functions in rules.
 - For localization, use language files.
 
-## Localization and Language Files
+---
+
+## 🌐 Localization and Language Files
 
 GeoRestrict supports multi-language block messages. To customize or add new translations:
 
@@ -256,7 +279,9 @@ resources/lang/it/messages.php
 
 No code changes are required - the language is detected automatically based on the country code (e.g., IT, FR, DE, RU, EN, etc.).
 
-## Cache Management & Tag-based Cache Flush
+---
+
+## ⚡ Cache Management & Tag-based Cache Flush
 
 GeoRestrict uses Laravel's cache for geo-data and rate limiting. If your cache driver supports tags (Redis, Memcached), all geoip cache entries are tagged with `geoip`.
 
@@ -272,7 +297,9 @@ You will see:
 
 > **Note:** Tag-based cache flush is only available for Redis and Memcached drivers. For other drivers, cache will not be flushed in bulk.
 
-## Logging: Custom Channel Support
+---
+
+## 📊 Logging: Custom Channel Support
 
 GeoRestrict supports logging to a custom channel. By default, all logs (blocked/allowed requests, provider errors, rate limits) go to the main Laravel log. To use a separate channel, set the `logging.channel` parameter in your `config/geo-restrict.php`:
 
@@ -299,6 +326,14 @@ Add a channel to your `config/logging.php`:
 
 If `channel` is not set or is `null`, logs will go to the default log channel.
 
-## License
+---
+
+## 📄 License
 
 This package is open-source software licensed under the MIT license.
+
+---
+
+## ⭐ Support
+
+If you find this package useful, consider giving it a star ⭐ on GitHub.
