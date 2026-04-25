@@ -31,10 +31,10 @@ class GeoCacheTest extends TestCase
     {
         $data = [
             'country' => 'RU',
-            'region' => 'MOW',
-            'city' => 'Moscow',
-            'asn' => null,
-            'isp' => null,
+            'region'  => 'MOW',
+            'city'    => 'Moscow',
+            'asn'     => null,
+            'isp'     => null,
         ];
 
         $this->geoCache->put('10.0.0.1', $data);
@@ -69,10 +69,10 @@ class GeoCacheTest extends TestCase
     {
         $this->geoCache->put('10.0.0.3', [
             'country' => 'DE',
-            'region' => null,
-            'city' => null,
-            'asn' => null,
-            'isp' => null,
+            'region'  => null,
+            'city'    => null,
+            'asn'     => null,
+            'isp'     => null,
         ]);
 
         $this->geoCache->clearAllGeoCache();

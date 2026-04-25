@@ -64,8 +64,11 @@ return [
     |
     */
     'geo_services'      => [
-        'cache_ttl'  => 1440,
-        'rate_limit' => 30,
+        'cache_ttl'               => 1440,
+        'rate_limit'              => 30,
+        'provider_timeout'        => 5,
+        'provider_retries'        => 0,
+        'provider_retry_delay_ms' => 150,
     ],
 
     /*
@@ -153,6 +156,20 @@ return [
         'blocked_requests' => true,
         'allowed_requests' => false,
         'channel'          => null,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Observability
+    |--------------------------------------------------------------------------
+    |
+    | Optional debug-level diagnostics for performance and behavior.
+    |
+    */
+    'observability'     => [
+        'log_cache_hits'       => false,
+        'log_provider_latency' => false,
+        'log_deny_reasons'     => false,
     ],
 
     /*

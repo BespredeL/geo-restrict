@@ -14,7 +14,8 @@
 
 GeoRestrict is a powerful and flexible Laravel middleware that allows you to control access to your application based on user geolocation.
 
-It supports filtering by country, region, city, ASN, ISP, and provides advanced features like multi-provider fallback, caching, rate limiting, and flexible rule configuration.
+It supports filtering by country, region, city, ASN, ISP, and provides advanced features like multi-provider fallback, caching, rate limiting, and
+flexible rule configuration.
 
 ---
 
@@ -104,6 +105,9 @@ return [
     'geo_services' => [
         'cache_ttl'  => 1440,
         'rate_limit' => 30,
+        'provider_timeout' => 5,
+        'provider_retries' => 0,
+        'provider_retry_delay_ms' => 150,
     ],
 
     'access' => [
@@ -152,6 +156,12 @@ return [
         'channel' => 'geo-restrict', // Use your custom channel name
     ],
 
+    'observability' => [
+        'log_cache_hits' => false,
+        'log_provider_latency' => false,
+        'log_deny_reasons' => false,
+    ],
+
     'block_response' => [
         'type'  => 'abort', // 'abort', 'json', 'view'
         'view'  => 'errors.geo_blocked',
@@ -169,8 +179,10 @@ return [
 - **services** - list of geo-services used to resolve location by IP. Each provider supports only its documented parameters (see table below).
 - **geo_services.cache_ttl** - cache lifetime in minutes (0 disables caching).
 - **geo_services.rate_limit** - max requests per minute per IP to geo services.
+- **geo_services.provider_timeout/provider_retries** - provider timeout and retry policy.
 - **access.rules.allow/deny** - allow/deny rules by country, region, ASN, callbacks and time periods.
 - **logging** - enable logging of blocked or allowed requests.
+- **observability** - optional debug diagnostics for cache hits, latency and deny reasons.
 - **block_response.type** - response type: 'abort', 'json', or 'view'.
 - **routes.only/except/methods** - route and method matching.
 - **excluded_networks** - list of IP networks to exclude from geo restriction.
@@ -228,6 +240,11 @@ class ExampleProvider extends AbstractGeoProvider {
 
 This makes it easy to add new providers and ensures all logic is unified and DRY.
 
+### Compatibility notes
+
+- `GeoAccess::passesRules()` is still available for backward compatibility.
+- New code can use `GeoAccess::evaluateRules()` for a structured rule-check result.
+
 ---
 
 ## 🚀 Usage
@@ -283,7 +300,8 @@ No code changes are required - the language is detected automatically based on t
 
 ## ⚡ Cache Management & Tag-based Cache Flush
 
-GeoRestrict uses Laravel's cache for geo-data and rate limiting. If your cache driver supports tags (Redis, Memcached), all geoip cache entries are tagged with `geoip`.
+GeoRestrict uses Laravel's cache for geo-data and rate limiting. If your cache driver supports tags (Redis, Memcached), all geoip cache entries are
+tagged with `geoip`.
 
 - To flush all geoip cache entries at once, use the artisan command:
 
@@ -301,7 +319,8 @@ You will see:
 
 ## 📊 Logging: Custom Channel Support
 
-GeoRestrict supports logging to a custom channel. By default, all logs (blocked/allowed requests, provider errors, rate limits) go to the main Laravel log. To use a separate channel, set the `logging.channel` parameter in your `config/geo-restrict.php`:
+GeoRestrict supports logging to a custom channel. By default, all logs (blocked/allowed requests, provider errors, rate limits) go to the main Laravel
+log. To use a separate channel, set the `logging.channel` parameter in your `config/geo-restrict.php`:
 
 ```php
 'logging' => [

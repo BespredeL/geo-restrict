@@ -4,13 +4,25 @@ declare(strict_types=1);
 
 namespace Bespredel\GeoRestrict\Services;
 
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Lang;
 use Symfony\Component\HttpFoundation\Response;
 
 class GeoAccess
 {
+
+    /**
+     * GeoAccess constructor.
+     *
+     * @param GeoRuleEvaluator   $ruleEvaluator
+     * @param GeoResponseFactory $responseFactory
+     */
+    public function __construct(
+        private readonly GeoRuleEvaluator   $ruleEvaluator,
+        private readonly GeoResponseFactory $responseFactory
+    )
+    {
+    }
+
     /**
      * Check: IP/network in excluded list?
      *
@@ -88,92 +100,24 @@ class GeoAccess
      */
     public function passesRules(array $geo): array|bool
     {
-        $rules = Config::get('geo-restrict.access.rules', []);
-
-        // Time-based denial
-        if (!empty($rules['deny']['time']) && $this->isNowInPeriods($rules['deny']['time'])) {
-            return ['reason' => 'time', 'field' => 'time'];
+        $result = $this->evaluateRules($geo);
+        if ($result->allowed) {
+            return true;
         }
 
-        // Time-based allow
-        if (!empty($rules['allow']['time']) && !$this->isNowInPeriods($rules['allow']['time'])) {
-            return ['reason' => 'time', 'field' => 'time'];
-        }
-
-        // Callback denial
-        if (is_callable($rules['deny']['callback'] ?? null)
-            && call_user_func($rules['deny']['callback'], $geo) === true
-        ) {
-            return ['reason' => 'callback', 'field' => 'callback'];
-        }
-
-        // Field-based denial
-        foreach ($rules['deny'] ?? [] as $field => $blocked) {
-            if (in_array($field, ['callback', 'time'], true)) {
-                continue;
-            }
-
-            if (in_array($geo[$field] ?? null, $blocked, true)) {
-                return ['reason' => $field, 'field' => $field, 'value' => $geo[$field] ?? null];
-            }
-        }
-
-        // Callback allow
-        if (is_callable($rules['allow']['callback'] ?? null)
-            && call_user_func($rules['allow']['callback'], $geo) !== true
-        ) {
-            return ['reason' => 'callback_allow', 'field' => 'callback'];
-        }
-
-        // Field-based allow
-        foreach ($rules['allow'] ?? [] as $field => $allowed) {
-            if (in_array($field, ['callback', 'time'], true)) {
-                continue;
-            }
-
-            if (!in_array($geo[$field] ?? null, $allowed) && $allowed) {
-                return ['reason' => $field, 'field' => $field, 'value' => $geo[$field] ?? null];
-            }
-        }
-
-        return true;
+        return $result->toLegacyBlockInfo() ?? ['reason' => 'blocked', 'field' => 'unknown'];
     }
 
     /**
-     * Check: Whether the current time falls into at least one of the given periods
+     * New structured rules API.
      *
-     * @param array $periods
+     * @param array $geo
      *
-     * @return bool
+     * @return RuleCheckResult
      */
-    private function isNowInPeriods(array $periods): bool
+    public function evaluateRules(array $geo): RuleCheckResult
     {
-        $now = Carbon::now();
-        $today = $now->copy()->startOfDay();
-
-        foreach ($periods as $period) {
-            $from = $period['from'] ?? null;
-            $to = $period['to'] ?? null;
-
-            if ($from && $to) {
-                $fromTime = $today->copy()->setTimeFromTimeString($from);
-                $toTime = $today->copy()->setTimeFromTimeString($to);
-
-                if ($fromTime > $toTime) {
-                    if ($now < $toTime) {
-                        $fromTime->subDay();
-                    } else {
-                        $toTime->addDay();
-                    }
-                }
-
-                if ($now->between($fromTime, $toTime)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
+        return $this->ruleEvaluator->evaluate($geo);
     }
 
     /**
@@ -186,46 +130,6 @@ class GeoAccess
      */
     public function denyResponse(?string $reason = null, ?array $blockInfo = null): Response
     {
-        $type = Config::get('geo-restrict.block_response.type', 'abort');
-        $json = Config::get('geo-restrict.block_response.json', []);
-        $locale = is_string($reason) && strlen($reason) === 2 ? strtolower($reason) : null;
-        $originalLocale = app()->getLocale();
-
-        if ($locale && Lang::has('geo-restrict.blocked', $locale)) {
-            app()->setLocale($locale);
-        }
-
-        // We determine the message key based on the cause of the lock
-        $messageKey = 'blocked';
-        if ($blockInfo && isset($blockInfo['reason'])) {
-            $reasonType = $blockInfo['reason'];
-            $messageKey = match ($reasonType) {
-                'time' => 'blocked_time',
-                'region' => 'blocked_region',
-                'city' => 'blocked_city',
-                'asn' => 'blocked_asn',
-                default => 'blocked',
-            };
-        }
-
-        $message = Lang::get('geo-restrict::messages.' . $messageKey);
-        if ($message === 'geo-restrict::messages.' . $messageKey) {
-            $message = 'Access denied by geo restriction.';
-        }
-
-        app()->setLocale($originalLocale);
-        if (($json['message'] ?? null) === null) {
-            $json['message'] = $message;
-        }
-
-        return match ($type) {
-            'json' => response()->json($json, 403),
-            'view' => response()->view(
-                Config::get('geo-restrict.block_response.view', 'errors.403'),
-                ['message' => $message, 'country' => $reason],
-                403
-            ),
-            default => abort(403, $message),
-        };
+        return $this->responseFactory->denyResponse($reason, $blockInfo);
     }
-} 
+}

@@ -22,20 +22,20 @@ class MiddlewareTest extends TestCase
         Config::set('geo-restrict.excluded_networks', ['127.0.0.1', '::1']);
         Config::set('geo-restrict.access.rules', [
             'allow' => [
-                'country' => ['RU'],
-                'region' => [],
-                'city' => [],
-                'asn' => [],
+                'country'  => ['RU'],
+                'region'   => [],
+                'city'     => [],
+                'asn'      => [],
                 'callback' => null,
-                'time' => [],
+                'time'     => [],
             ],
-            'deny' => [
-                'country' => [],
-                'region' => [],
-                'city' => [],
-                'asn' => [],
+            'deny'  => [
+                'country'  => [],
+                'region'   => [],
+                'city'     => [],
+                'asn'      => [],
                 'callback' => null,
-                'time' => [],
+                'time'     => [],
             ],
         ]);
         Config::set('geo-restrict.block_response.type', 'json');
@@ -43,7 +43,11 @@ class MiddlewareTest extends TestCase
         Config::set('geo-restrict.logging.blocked_requests', false);
         Config::set('geo-restrict.logging.allowed_requests', false);
 
-        Route::get('/test-geo', static fn () => response('ok', 200))
+        Route::get('/test-geo', static fn() => response('ok', 200))
+            ->middleware(RestrictAccessByGeo::class);
+        Route::post('/test-geo', static fn() => response('ok-post', 200))
+            ->middleware(RestrictAccessByGeo::class);
+        Route::get('/public-geo', static fn() => response('public-ok', 200))
             ->middleware(RestrictAccessByGeo::class);
     }
 
@@ -64,10 +68,10 @@ class MiddlewareTest extends TestCase
             ->with('203.0.113.100')
             ->andReturn([
                 'country' => 'US',
-                'region' => null,
-                'city' => null,
-                'asn' => null,
-                'isp' => null,
+                'region'  => null,
+                'city'    => null,
+                'asn'     => null,
+                'isp'     => null,
             ]);
         $this->app->instance(GeoResolver::class, $resolver);
 
@@ -85,10 +89,10 @@ class MiddlewareTest extends TestCase
             ->with('203.0.113.101')
             ->andReturn([
                 'country' => 'RU',
-                'region' => null,
-                'city' => null,
-                'asn' => null,
-                'isp' => null,
+                'region'  => null,
+                'city'    => null,
+                'asn'     => null,
+                'isp'     => null,
             ]);
         $this->app->instance(GeoResolver::class, $resolver);
 
@@ -108,6 +112,38 @@ class MiddlewareTest extends TestCase
         $this->app->instance(GeoResolver::class, $resolver);
 
         $this->serverVariables = ['REMOTE_ADDR' => '203.0.113.102'];
+        $response = $this->get('/test-geo');
+
+        $response->assertStatus(403);
+    }
+
+    public function test_except_route_skips_restriction(): void
+    {
+        Config::set('geo-restrict.routes.except', ['public-geo']);
+        $this->serverVariables = ['REMOTE_ADDR' => 'bad-ip'];
+
+        $response = $this->get('/public-geo');
+
+        $response->assertOk();
+        $response->assertSee('public-ok');
+    }
+
+    public function test_methods_filter_skips_non_matching_method(): void
+    {
+        Config::set('geo-restrict.routes.methods', ['POST']);
+        $this->serverVariables = ['REMOTE_ADDR' => 'bad-ip'];
+
+        $response = $this->get('/test-geo');
+
+        $response->assertOk();
+        $response->assertSee('ok');
+    }
+
+    public function test_invalid_ip_returns_403_when_restriction_applies(): void
+    {
+        Config::set('geo-restrict.routes.only', ['test-geo']);
+        $this->serverVariables = ['REMOTE_ADDR' => 'bad-ip'];
+
         $response = $this->get('/test-geo');
 
         $response->assertStatus(403);

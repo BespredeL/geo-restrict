@@ -7,8 +7,9 @@ namespace Bespredel\GeoRestrict\Providers;
 use Bespredel\GeoRestrict\Contracts\GeoServiceProviderInterface;
 use Bespredel\GeoRestrict\Exceptions\GeoProviderException;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use Bespredel\GeoRestrict\Services\GeoLoggerTrait;
 
 abstract class AbstractGeoProvider implements GeoServiceProviderInterface
@@ -144,21 +145,15 @@ abstract class AbstractGeoProvider implements GeoServiceProviderInterface
 
         $parsed = parse_url($url);
         $host = $parsed['host'] ?? null;
-        if ($host && filter_var($host, FILTER_VALIDATE_IP)) {
-            if (!filter_var($host, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+        if ($host !== null && filter_var($host, FILTER_VALIDATE_IP) !== false) {
+            if (filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
                 throw new GeoProviderException("Disallowed host for geo provider: {$host}");
             }
         }
 
         try {
-            $request = Http::timeout(5);
-
-            $headers = $this->getHeaders();
-            if (!empty($headers)) {
-                $request = $request->withHeaders($headers);
-            }
-
-            $response = $request->get($url);
+            $start = microtime(true);
+            $response = $this->executeRequest($url);
         }
         catch (ConnectionException $e) {
             $this->geoLogger()->error("GeoProvider: connection error in " . static::class . " - " . $e->getMessage());
@@ -169,6 +164,11 @@ abstract class AbstractGeoProvider implements GeoServiceProviderInterface
             throw new GeoProviderException("Unexpected error occurred while requesting geo data.");
         }
 
+        if (Config::get('geo-restrict.observability.log_provider_latency', false)) {
+            $elapsedMs = (int)round((microtime(true) - $start) * 1000);
+            $this->geoLogger()->debug("GeoProvider: " . static::class . " responded in {$elapsedMs}ms");
+        }
+
         $data = $response->json();
 
         if (!$response->successful() || !$this->isValidResponse($data)) {
@@ -176,6 +176,36 @@ abstract class AbstractGeoProvider implements GeoServiceProviderInterface
         }
 
         return $this->mapByMap($data, $this->responseMap);
+    }
+
+    /**
+     * Execute provider request with configurable timeout and retries.
+     *
+     * @param string $url
+     *
+     * @return Response
+     *
+     * @throws ConnectionException
+     * @throws \Throwable
+     */
+    protected function executeRequest(string $url): Response
+    {
+        $timeout = (int)($this->options['timeout'] ?? Config::get('geo-restrict.geo_services.provider_timeout', 5));
+        $retries = (int)($this->options['retries'] ?? Config::get('geo-restrict.geo_services.provider_retries', 0));
+        $retryDelayMs = (int)($this->options['retry_delay_ms'] ?? Config::get('geo-restrict.geo_services.provider_retry_delay_ms', 150));
+
+        $request = Http::timeout(max(1, $timeout));
+
+        $headers = $this->getHeaders();
+        if (!empty($headers)) {
+            $request = $request->withHeaders($headers);
+        }
+
+        if ($retries > 0) {
+            $request = $request->retry($retries, $retryDelayMs, throw: false);
+        }
+
+        return $request->get($url);
     }
 
     /**

@@ -64,17 +64,26 @@ class RestrictAccessByGeo
         }
 
         $country = $geoData['country'] ?? '??';
-        $url = $request->fullUrl();
-
-        $rulesResult = $this->geoAccessService->passesRules($geoData);
-        if ($rulesResult !== true) {
+        $ruleResult = $this->geoAccessService->evaluateRules($geoData);
+        if (!$ruleResult->allowed) {
             if (Config::get('geo-restrict.logging.blocked_requests', false)) {
+                $url = $request->fullUrl();
                 $this->geoLogger()->warning("GeoRestrict: Blocked {$ip} from {$country} accessing {$url}");
             }
-            return $this->geoAccessService->denyResponse($geoData['country'] ?? null, $rulesResult);
+
+            if (Config::get('geo-restrict.observability.log_deny_reasons', false)) {
+                $reason = $ruleResult->reason ?? 'unknown';
+                $this->geoLogger()->debug("GeoRestrict: deny reason '{$reason}' for {$ip}");
+            }
+
+            return $this->geoAccessService->denyResponse(
+                $geoData['country'] ?? null,
+                $ruleResult->toLegacyBlockInfo()
+            );
         }
 
         if (Config::get('geo-restrict.logging.allowed_requests', false)) {
+            $url = $request->fullUrl();
             $this->geoLogger()->info("GeoRestrict: Allowed {$ip} from {$country} accessing {$url}");
         }
 

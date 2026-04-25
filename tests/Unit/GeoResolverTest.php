@@ -16,15 +16,15 @@ class GeoResolverTest extends TestCase
     {
         $cached = [
             'country' => 'RU',
-            'region' => 'MOW',
-            'city' => 'Moscow',
-            'asn' => null,
-            'isp' => null,
+            'region'  => 'MOW',
+            'city'    => 'Moscow',
+            'asn'     => null,
+            'isp'     => null,
         ];
 
         $cache = $this->createMock(GeoCache::class);
         $cache->method('get')->with('10.0.0.5')->willReturn($cached);
-        $cache->method('isRateLimited')->willReturn(false);
+        $cache->expects(self::never())->method('incrementRateLimitOrFail');
         $cache->expects(self::never())->method('put');
 
         Config::set('geo-restrict.services', []);
@@ -37,8 +37,8 @@ class GeoResolverTest extends TestCase
     public function test_resolve_returns_null_when_no_services_configured(): void
     {
         $cache = $this->createMock(GeoCache::class);
-        $cache->method('isRateLimited')->willReturn(false);
         $cache->method('get')->willReturn(null);
+        $cache->expects(self::once())->method('incrementRateLimitOrFail');
 
         Config::set('geo-restrict.services', []);
 
@@ -47,29 +47,48 @@ class GeoResolverTest extends TestCase
         self::assertNull($resolver->resolve('8.8.8.8'));
     }
 
+    public function test_resolve_checks_rate_limit_only_after_cache_miss(): void
+    {
+        $cache = $this->createMock(GeoCache::class);
+        $cache->expects(self::exactly(2))
+            ->method('get')
+            ->willReturnOnConsecutiveCalls(
+                ['country' => 'RU', 'region' => null, 'city' => null, 'asn' => null, 'isp' => null],
+                null
+            );
+        $cache->expects(self::once())->method('incrementRateLimitOrFail');
+        $cache->expects(self::never())->method('put');
+
+        Config::set('geo-restrict.services', []);
+        $resolver = new GeoResolver($cache);
+
+        self::assertNotNull($resolver->resolve('198.51.100.10'));
+        self::assertNull($resolver->resolve('198.51.100.10'));
+    }
+
     public function test_resolve_returns_normalized_data_from_array_service_via_http_fake(): void
     {
         Http::fake([
             '*' => Http::response([
                 'country_code' => 'DE',
-                'region' => 'Berlin',
-                'city' => 'Berlin',
-                'asn' => 12345,
-                'org' => 'ISP GmbH',
+                'region'       => 'Berlin',
+                'city'         => 'Berlin',
+                'asn'          => 12345,
+                'org'          => 'ISP GmbH',
             ], 200),
         ]);
 
         Config::set('geo-restrict.services', [
             [
-                'name' => 'fake',
-                'url' => 'https://example.com/:ip',
+                'name'    => 'fake',
+                'url'     => 'https://example.com/:ip',
                 'headers' => ['Accept' => 'application/json'],
-                'map' => [
+                'map'     => [
                     'country' => 'country_code',
-                    'region' => 'region',
-                    'city' => 'city',
-                    'asn' => 'asn',
-                    'isp' => 'org',
+                    'region'  => 'region',
+                    'city'    => 'city',
+                    'asn'     => 'asn',
+                    'isp'     => 'org',
                 ],
             ],
         ]);
@@ -98,13 +117,13 @@ class GeoResolverTest extends TestCase
         Config::set('geo-restrict.services', [
             [
                 'name' => 'fake',
-                'url' => 'https://example.com/:ip',
-                'map' => [
+                'url'  => 'https://example.com/:ip',
+                'map'  => [
                     'country' => 'country_code',
-                    'region' => 'region',
-                    'city' => 'city',
-                    'asn' => 'asn',
-                    'isp' => 'isp',
+                    'region'  => 'region',
+                    'city'    => 'city',
+                    'asn'     => 'asn',
+                    'isp'     => 'isp',
                 ],
             ],
         ]);

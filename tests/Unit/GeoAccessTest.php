@@ -15,7 +15,7 @@ class GeoAccessTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->geoAccess = new GeoAccess();
+        $this->geoAccess = $this->app->make(GeoAccess::class);
     }
 
     public function test_is_excluded_ip_returns_true_for_exact_ip_in_list(): void
@@ -57,29 +57,29 @@ class GeoAccessTest extends TestCase
     {
         Config::set('geo-restrict.access.rules', [
             'allow' => [
-                'country' => ['RU', 'DE'],
-                'region' => [],
-                'city' => [],
-                'asn' => [],
+                'country'  => ['RU', 'DE'],
+                'region'   => [],
+                'city'     => [],
+                'asn'      => [],
                 'callback' => null,
-                'time' => [],
+                'time'     => [],
             ],
-            'deny' => [
-                'country' => [],
-                'region' => [],
-                'city' => [],
-                'asn' => [],
+            'deny'  => [
+                'country'  => [],
+                'region'   => [],
+                'city'     => [],
+                'asn'      => [],
                 'callback' => null,
-                'time' => [],
+                'time'     => [],
             ],
         ]);
 
         self::assertTrue($this->geoAccess->passesRules([
             'country' => 'RU',
-            'region' => 'MOW',
-            'city' => 'Moscow',
-            'asn' => null,
-            'isp' => null,
+            'region'  => 'MOW',
+            'city'    => 'Moscow',
+            'asn'     => null,
+            'isp'     => null,
         ]));
     }
 
@@ -87,29 +87,29 @@ class GeoAccessTest extends TestCase
     {
         Config::set('geo-restrict.access.rules', [
             'allow' => [
-                'country' => ['RU'],
-                'region' => [],
-                'city' => [],
-                'asn' => [],
+                'country'  => ['RU'],
+                'region'   => [],
+                'city'     => [],
+                'asn'      => [],
                 'callback' => null,
-                'time' => [],
+                'time'     => [],
             ],
-            'deny' => [
-                'country' => [],
-                'region' => [],
-                'city' => [],
-                'asn' => [],
+            'deny'  => [
+                'country'  => [],
+                'region'   => [],
+                'city'     => [],
+                'asn'      => [],
                 'callback' => null,
-                'time' => [],
+                'time'     => [],
             ],
         ]);
 
         $result = $this->geoAccess->passesRules([
             'country' => 'US',
-            'region' => null,
-            'city' => null,
-            'asn' => null,
-            'isp' => null,
+            'region'  => null,
+            'city'    => null,
+            'asn'     => null,
+            'isp'     => null,
         ]);
 
         self::assertIsArray($result);
@@ -121,29 +121,29 @@ class GeoAccessTest extends TestCase
     {
         Config::set('geo-restrict.access.rules', [
             'allow' => [
-                'country' => [],
-                'region' => [],
-                'city' => [],
-                'asn' => [],
+                'country'  => [],
+                'region'   => [],
+                'city'     => [],
+                'asn'      => [],
                 'callback' => null,
-                'time' => [],
+                'time'     => [],
             ],
-            'deny' => [
-                'country' => ['US'],
-                'region' => [],
-                'city' => [],
-                'asn' => [],
+            'deny'  => [
+                'country'  => ['US'],
+                'region'   => [],
+                'city'     => [],
+                'asn'      => [],
                 'callback' => null,
-                'time' => [],
+                'time'     => [],
             ],
         ]);
 
         $result = $this->geoAccess->passesRules([
             'country' => 'US',
-            'region' => null,
-            'city' => null,
-            'asn' => null,
-            'isp' => null,
+            'region'  => null,
+            'city'    => null,
+            'asn'     => null,
+            'isp'     => null,
         ]);
 
         self::assertIsArray($result);
@@ -154,39 +154,39 @@ class GeoAccessTest extends TestCase
     {
         Config::set('geo-restrict.access.rules', [
             'allow' => [
-                'country' => [],
-                'region' => [],
-                'city' => [],
-                'asn' => [],
+                'country'  => [],
+                'region'   => [],
+                'city'     => [],
+                'asn'      => [],
                 'callback' => static function (array $geo): bool {
                     return ($geo['country'] ?? '') === 'RU';
                 },
-                'time' => [],
+                'time'     => [],
             ],
-            'deny' => [
-                'country' => [],
-                'region' => [],
-                'city' => [],
-                'asn' => [],
+            'deny'  => [
+                'country'  => [],
+                'region'   => [],
+                'city'     => [],
+                'asn'      => [],
                 'callback' => null,
-                'time' => [],
+                'time'     => [],
             ],
         ]);
 
         self::assertTrue($this->geoAccess->passesRules([
             'country' => 'RU',
-            'region' => null,
-            'city' => null,
-            'asn' => null,
-            'isp' => null,
+            'region'  => null,
+            'city'    => null,
+            'asn'     => null,
+            'isp'     => null,
         ]));
 
         $result = $this->geoAccess->passesRules([
             'country' => 'US',
-            'region' => null,
-            'city' => null,
-            'asn' => null,
-            'isp' => null,
+            'region'  => null,
+            'city'    => null,
+            'asn'     => null,
+            'isp'     => null,
         ]);
         self::assertIsArray($result);
         self::assertSame('callback_allow', $result['reason']);

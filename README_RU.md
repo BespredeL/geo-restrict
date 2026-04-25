@@ -14,7 +14,8 @@
 
 GeoRestrict - это мощный и гибкий middleware для Laravel, который позволяет управлять доступом к приложению на основе геолокации пользователя (GeoIP).
 
-Поддерживает фильтрацию по стране, региону, городу, ASN, ISP, а также предоставляет расширенные возможности: fallback между провайдерами, кеширование, rate limiting и гибкую настройку правил.
+Поддерживает фильтрацию по стране, региону, городу, ASN, ISP, а также предоставляет расширенные возможности: fallback между провайдерами, кеширование,
+rate limiting и гибкую настройку правил.
 
 ---
 
@@ -104,6 +105,9 @@ return [
     'geo_services' => [
         'cache_ttl'  => 1440,
         'rate_limit' => 30,
+        'provider_timeout' => 5,
+        'provider_retries' => 0,
+        'provider_retry_delay_ms' => 150,
     ],
 
     'access' => [
@@ -152,6 +156,12 @@ return [
         'channel' => 'geo-restrict', // Имя вашего канала
     ],
 
+    'observability' => [
+        'log_cache_hits' => false,
+        'log_provider_latency' => false,
+        'log_deny_reasons' => false,
+    ],
+
     'block_response' => [
         'type'  => 'abort', // 'abort', 'json', 'view'
         'view'  => 'errors.geo_blocked',
@@ -170,8 +180,10 @@ return [
   таблицу ниже).
 - **geo_services.cache_ttl** - время жизни кэша (в минутах), 0 - кэш отключён.
 - **geo_services.rate_limit** - ограничение количества запросов к geo-сервисам с одного IP в минуту.
+- **geo_services.provider_timeout/provider_retries** - timeout и политика повторов для запросов к провайдерам.
 - **access.rules.allow/deny** - правила разрешения/запрета по стране, региону, ASN, callback-функции и времени.
 - **logging** - параметры логирования (блокировки, разрешённые запросы).
+- **observability** - опциональные диагностические логи cache hit, latency провайдеров и причин блокировок.
 - **block_response.type** - тип ответа при блокировке: 'abort' (стандартный abort), 'json' (JSON-ответ), 'view' (рендер view).
 - **routes.only/except/methods** - ограничения по маршрутам и HTTP-методам.
 - **excluded_networks** - список IP-сетей для исключения из ограничений.
@@ -229,6 +241,11 @@ class ExampleProvider extends AbstractGeoProvider {
 
 Это упрощает добавление новых провайдеров и гарантирует единообразие и отсутствие дублирования логики.
 
+### Совместимость API
+
+- `GeoAccess::passesRules()` сохранён для обратной совместимости.
+- Для нового кода рекомендуется `GeoAccess::evaluateRules()` со структурированным результатом проверки правил.
+
 ---
 
 ## 🚀 Использование
@@ -284,7 +301,8 @@ resources/lang/it/messages.php
 
 ## ⚡ Управление кэшем и массовая очистка (tag-based flush)
 
-GeoRestrict использует кэш Laravel для хранения geo-данных и лимитов. Если ваш драйвер кэша поддерживает теги (Redis, Memcached), все записи geoip кэшируются с тегом `geoip`.
+GeoRestrict использует кэш Laravel для хранения geo-данных и лимитов. Если ваш драйвер кэша поддерживает теги (Redis, Memcached), все записи geoip
+кэшируются с тегом `geoip`.
 
 - Для массовой очистки geoip-кэша используйте artisan-команду:
 
@@ -302,7 +320,8 @@ php artisan geo-restrict:clear-cache
 
 ## 📊 Логирование: поддержка отдельного канала
 
-GeoRestrict поддерживает логирование в отдельный канал. По умолчанию все логи (блокировки, разрешения, ошибки провайдеров, rate limit) пишутся в основной лог Laravel. Чтобы использовать отдельный канал, укажите параметр `logging.channel` в `config/geo-restrict.php`:
+GeoRestrict поддерживает логирование в отдельный канал. По умолчанию все логи (блокировки, разрешения, ошибки провайдеров, rate limit) пишутся в
+основной лог Laravel. Чтобы использовать отдельный канал, укажите параметр `logging.channel` в `config/geo-restrict.php`:
 
 ```php
 'logging' => [

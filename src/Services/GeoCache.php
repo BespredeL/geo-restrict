@@ -9,7 +9,6 @@ use Illuminate\Cache\TaggableStore;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Log;
 
 class GeoCache
 {
@@ -42,6 +41,22 @@ class GeoCache
      */
     public function isRateLimited(string $ip): bool
     {
+        $this->incrementRateLimitOrFail($ip);
+
+        return false;
+    }
+
+    /**
+     * Increments the request counter for an IP and throws when limit is exceeded.
+     *
+     * @param string $ip
+     *
+     * @return void
+     *
+     * @throws GeoRateLimitException
+     */
+    public function incrementRateLimitOrFail(string $ip): void
+    {
         $rateKey = "geoip:rate:{$ip}";
         $count = $this->cache()->get($rateKey, 0);
         $rateLimit = Config::get('geo-restrict.geo_services.rate_limit', 30);
@@ -52,8 +67,6 @@ class GeoCache
         }
 
         $this->cache()->put($rateKey, $count + 1, Carbon::now()->addMinute());
-
-        return false;
     }
 
     /**

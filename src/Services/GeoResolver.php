@@ -10,12 +10,16 @@ use Bespredel\GeoRestrict\Exceptions\GeoRateLimitException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 class GeoResolver
 {
     use GeoLoggerTrait;
 
+    /**
+     * GeoCache instance for caching and rate limiting
+     *
+     * @var GeoCache
+     */
     protected GeoCache $cache;
 
     /**
@@ -36,22 +40,26 @@ class GeoResolver
      * @param string $ip
      *
      * @return array|null Array with keys: country, region, city, asn, isp; or null if not found or on error
+     *
+     * @throws GeoRateLimitException
+     * @throws \Throwable
      */
     public function resolve(string $ip): ?array
     {
-        try {
-            if ($this->cache->isRateLimited($ip)) {
-                return null;
+        $cached = $this->cache->get($ip);
+        if ($cached !== null) {
+            if (Config::get('geo-restrict.observability.log_cache_hits', false)) {
+                $this->geoLogger()->debug("GeoRestrict: cache hit for {$ip}");
             }
+            return $cached;
+        }
+
+        try {
+            $this->cache->incrementRateLimitOrFail($ip);
         }
         catch (GeoRateLimitException $e) {
             $this->geoLogger()->warning($e->getMessage());
             return null;
-        }
-
-        $cached = $this->cache->get($ip);
-        if ($cached !== null) {
-            return $cached;
         }
 
         $standardKeys = ['country', 'region', 'city', 'asn', 'isp'];
@@ -61,6 +69,9 @@ class GeoResolver
             if ($data && $this->isValidGeoData($data)) {
                 $data = $this->normalizeGeoData($data, $standardKeys);
                 $this->cache->put($ip, $data);
+                if (Config::get('geo-restrict.observability.log_provider_latency', false)) {
+                    $this->geoLogger()->debug("GeoRestrict: provider data resolved for {$ip}");
+                }
                 return $data;
             }
         }
